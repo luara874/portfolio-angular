@@ -1,3 +1,25 @@
-<h1>{{ title() }}</h1>
+<mat-toolbar color="primary">
+  <span>Meu Portfólio</span>
+  <span class="espacador"></span>
 
-<p>Bem vindo ao meu portfólio - em construção com Angular!</p>
+  <a mat-button routerLink="/" routerLinkActive="ativo"
+     [routerLinkActiveOptions]="{ exact: true }">
+    Início
+  </a>
+
+  <a mat-button routerLink="/sobre" routerLinkActive="ativo">
+    Sobre
+  </a>
+
+  <a mat-button routerLink="/projetos" routerLinkActive="ativo">
+    Projetos
+  </a>
+
+  <a mat-button routerLink="/contato" routerLinkActive="ativo">
+    Contato
+  </a>
+</mat-toolbar>
+
+<main style="padding: 24px;">
+  <router-outlet></router-outlet>
+</main>
