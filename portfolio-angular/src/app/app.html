@@ -1,25 +1,71 @@
-<mat-toolbar color="primary">
-  <span>Meu Portfólio</span>
-  <span class="espacador"></span>
+<mat-sidenav-container>
 
-  <a mat-button routerLink="/" routerLinkActive="ativo"
-     [routerLinkActiveOptions]="{ exact: true }">
-    Início
-  </a>
+  <mat-sidenav #menu mode="side" opened>
+    <h3>Menu</h3>
 
-  <a mat-button routerLink="/sobre" routerLinkActive="ativo">
-    Sobre
-  </a>
+    <a mat-button routerLink="/" routerLinkActive="ativo"
+       [routerLinkActiveOptions]="{ exact: true }">
+      <mat-icon>home</mat-icon>
+      Início
+    </a>
 
-  <a mat-button routerLink="/projetos" routerLinkActive="ativo">
-    Projetos
-  </a>
+    <br>
 
-  <a mat-button routerLink="/contato" routerLinkActive="ativo">
-    Contato
-  </a>
-</mat-toolbar>
+    <a mat-button routerLink="/sobre" routerLinkActive="ativo">
+      <mat-icon>person</mat-icon>
+      Sobre
+    </a>
 
-<main style="padding: 24px;">
-  <router-outlet></router-outlet>
-</main>
+    <br>
+
+    <a mat-button routerLink="/projetos" routerLinkActive="ativo">
+      <mat-icon>folder</mat-icon>
+      Projetos
+    </a>
+
+    <br>
+
+    <a mat-button routerLink="/contato" routerLinkActive="ativo">
+      <mat-icon>mail</mat-icon>
+      Contato
+    </a>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+
+    <mat-toolbar color="primary">
+
+      <button mat-icon-button (click)="menu.toggle()">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <span>Meu Portfólio</span>
+
+      <span class="espacador"></span>
+
+      <a mat-button routerLink="/" routerLinkActive="ativo"
+         [routerLinkActiveOptions]="{ exact: true }">
+        Início
+      </a>
+
+      <a mat-button routerLink="/sobre" routerLinkActive="ativo">
+        Sobre
+      </a>
+
+      <a mat-button routerLink="/projetos" routerLinkActive="ativo">
+        Projetos
+      </a>
+
+      <a mat-button routerLink="/contato" routerLinkActive="ativo">
+        Contato
+      </a>
+
+    </mat-toolbar>
+
+    <main style="padding: 24px;">
+      <router-outlet></router-outlet>
+    </main>
+
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

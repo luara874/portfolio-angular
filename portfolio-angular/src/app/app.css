@@ -1,1 +1,22 @@
-.espacador { flex: 1 1 auto; }
+mat-sidenav-container {
+  height: 100vh;
+}
+
+mat-sidenav {
+  width: 220px;
+  padding: 16px;
+}
+
+mat-sidenav a {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.espacador {
+  flex: 1 1 auto;
+}
+
+.ativo {
+  font-weight: bold;
+  text-decoration: underline;
+}
