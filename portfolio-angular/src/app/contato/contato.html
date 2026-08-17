@@ -1,26 +1,30 @@
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Contato 📬</mat-card-title>
-    <mat-card-subtitle>
-      Entre em contato comigo
-    </mat-card-subtitle>
-  </mat-card-header>
+<!-- src/app/contato/contato.html -->
 
-  <mat-card-content>
+<h2>Fale comigo</h2>
 
-    <p>
-      Caso queira conversar sobre projetos, estudos ou tecnologia,
-      você pode entrar em contato pelos meios abaixo:
-    </p>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-    <h3>📧 E-mail</h3>
-    <p>munkluara@gmail.com</p>
+  <label for="nome">Nome</label>
+  <input id="nome" type="text" formControlName="nome">
 
-    <h3>💻 GitHub</h3>
-    <p>github.com/luara874</p>
+  <label for="email">E-mail</label>
+  <input id="email" type="email" formControlName="email">
 
-    <h3>🔗 LinkedIn</h3>
-    <p>linkedin.com/in/seuusuario</p>
+  <label for="mensagem">Mensagem</label>
+  <textarea id="mensagem" formControlName="mensagem" rows="4"></textarea>
 
-  </mat-card-content>
-</mat-card>
+  <!-- botão desabilita enquanto envia; troca o texto -->
+  <button type="submit" [disabled]="enviando">
+    {{ enviando ? 'Enviando...' : 'Enviar' }}
+  </button>
+
+</form>
+
+<!-- estados de retorno -->
+@if (sucesso) {
+  <p class="ok">{{ sucesso }}</p>
+}
+
+@if (erro) {
+  <p class="erro">{{ erro }}</p>
+}
