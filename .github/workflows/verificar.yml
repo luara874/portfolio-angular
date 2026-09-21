@@ -1,0 +1,97 @@
+name: Verificar projeto
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 1
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: portfolio-angular/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: portfolio-angular
+        run: npm ci
+
+      - name: Compilar Angular
+        working-directory: portfolio-angular
+        run: npm run build
+
+      - name: Validar PHP
+        run: |
+          php -l conexao.php
+          php -l api/projetos.php
+          php -l api/tecnologias.php
+          php -l api/contato.php
+
+      - name: Instalar cliente MariaDB
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client
+
+      - name: Preparar banco
+        run: mariadb -h 127.0.0.1 -u root < sql/setup.sql
+
+      - name: Testar API
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: dwii_db
+          DB_USER: root
+          DB_PASS: ""
+        run: |
+          php -S 127.0.0.1:8000 > /tmp/php-server.log 2>&1 &
+          servidor=$!
+
+          for tentativa in {1..20}; do
+            if curl -fsS http://127.0.0.1:8000/api/tecnologias.php > /tmp/tecnologias.json; then
+              break
+            fi
+            sleep 1
+          done
+
+          test "$(curl -sS -o /tmp/projetos.json -w '%{http_code}' http://127.0.0.1:8000/api/projetos.php)" = "200"
+
+          post_status=$(curl -sS -o /tmp/post.json -w '%{http_code}' -X POST             -H 'Content-Type: application/json'             -d '{"nome":"Projeto teste","descricao":"Teste automatico","tecnologias":"Angular, PHP","link_github":"","ano":2026,"status":"rascunho"}'             http://127.0.0.1:8000/api/projetos.php)
+          test "$post_status" = "201"
+
+          id=$(php -r '$d=json_decode(file_get_contents("/tmp/post.json"), true); echo $d["id"] ?? "";')
+          test -n "$id"
+
+          test "$(curl -sS -o /tmp/todos.json -w '%{http_code}' 'http://127.0.0.1:8000/api/projetos.php?todos=1')" = "200"
+
+          put_status=$(curl -sS -o /tmp/put.json -w '%{http_code}' -X PUT             -H 'Content-Type: application/json'             -d '{"nome":"Projeto atualizado","descricao":"Teste automatico","tecnologias":"Angular, PHP","link_github":"","ano":2026,"status":"publicado"}'             "http://127.0.0.1:8000/api/projetos.php?id=$id")
+          test "$put_status" = "200"
+
+          delete_status=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE             "http://127.0.0.1:8000/api/projetos.php?id=$id")
+          test "$delete_status" = "204"
+
+          contato_status=$(curl -sS -o /tmp/contato.json -w '%{http_code}' -X POST             -H 'Content-Type: application/json'             -d '{"nome":"Luara","email":"luara@example.com","mensagem":"Mensagem de teste automatico."}'             http://127.0.0.1:8000/api/contato.php)
+          test "$contato_status" = "201"
+
+          options_status=$(curl -sS -o /dev/null -w '%{http_code}' -X OPTIONS             http://127.0.0.1:8000/api/projetos.php)
+          test "$options_status" = "204"
+
+          kill "$servidor"
