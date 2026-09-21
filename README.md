@@ -1,18 +1,75 @@
-# Portfólio Angular
+# portfolio-angular
 
-**Autora:** Luara Munk
+Projeto da matéria de Desenvolvimento Web II (IFPR). Front-end em Angular e
+back-end com uma API em PHP + MariaDB.
 
-Projeto desenvolvido nas aulas de Desenvolvimento Web II. O portfólio tem páginas de apresentação, projetos, catálogo, contato e uma área de gestão para cadastrar e manter os projetos sem precisar alterar o banco manualmente.
+Autora: **Luara Munk**.
 
-## Como rodar
+Versões do projeto: npm 11.9.0, Angular CLI 21.2.13, Node 24 recomendado, PHP 8+ e MariaDB.
 
-Na raiz do repositório, suba a API PHP:
+## Estrutura
 
-```bash
-/usr/bin/php -S 0.0.0.0:8000
+```
+.
+├── api/
+│   ├── projetos.php      # consulta e CRUD dos projetos
+│   ├── tecnologias.php   # catálogo de tecnologias ativas
+│   └── contato.php       # recebe mensagens do formulário de contato
+├── conexao.php           # conexão PDO com o MariaDB
+├── sql/
+│   └── setup.sql         # cria o banco, as tabelas e os dados-base
+└── portfolio-angular/    # aplicação Angular (front-end)
 ```
 
-Em outro terminal:
+## Back-end (API PHP + MariaDB)
+
+### 1. Pré-requisitos
+
+- PHP 8 ou superior (`php -v`)
+- MariaDB (ou MySQL) rodando
+- usuário `dwii_user` com acesso ao banco `dwii_db`, ou variáveis de ambiente `DB_HOST`, `DB_NAME`, `DB_USER` e `DB_PASS`
+
+### 2. Criar o banco
+
+O script cria o banco `dwii_db`, as tabelas `projetos`, `tecnologias` e `contatos`, além de alguns dados iniciais do catálogo:
+
+```bash
+sudo mariadb < sql/setup.sql
+```
+
+Ou, já dentro do cliente:
+
+```sql
+SOURCE sql/setup.sql;
+```
+
+A conexão padrão usada por `conexao.php` é:
+
+- banco: `dwii_db`
+- usuário: `dwii_user`
+- senha: `dwii2026`
+
+### 3. Subir a API
+
+Na raiz do repositório, usando o servidor embutido do PHP:
+
+```bash
+/usr/bin/php -S localhost:8000
+```
+
+### 4. Endpoints
+
+- Projetos publicados: http://localhost:8000/api/projetos.php
+- Todos os projetos para a gestão: http://localhost:8000/api/projetos.php?todos=1
+- Criar projeto: `POST /api/projetos.php`
+- Atualizar projeto: `PUT /api/projetos.php?id=N`
+- Excluir projeto: `DELETE /api/projetos.php?id=N`
+- Catálogo de tecnologias: http://localhost:8000/api/tecnologias.php
+- Envio de contato: `POST http://localhost:8000/api/contato.php`
+
+As respostas em JSON usam `Content-Type: application/json; charset=utf-8` e as APIs liberam CORS para o front-end.
+
+## Front-end (Angular)
 
 ```bash
 cd portfolio-angular
@@ -20,51 +77,77 @@ npm install
 ng serve
 ```
 
-No Codespace, a porta do Angular e a porta 8000 precisam estar acessíveis. Quando o Codespace mudar, a URL da API deve ser atualizada em:
+Acesse http://localhost:4200/.
 
-`portfolio-angular/src/app/projeto.service.ts`
+A URL base da API fica centralizada em:
 
-e também em `portfolio-angular/src/app/contato.service.ts`.
+`portfolio-angular/src/app/api-url.ts`
 
-## Área de gestão
+Por padrão:
 
-A rota `/gestao` permite:
+```ts
+export const API_URL = 'http://localhost:8000/api';
+```
 
-- listar projetos publicados e rascunhos;
-- adicionar projeto;
-- editar projeto;
-- excluir com confirmação;
-- escolher entre rascunho e publicado;
-- ver mensagens de carregamento, lista vazia, sucesso e erro.
+Se a API estiver em outro endereço, como em um Codespace, altere somente essa constante.
 
-Depois de salvar, eu busco a lista novamente na API. Preferi fazer assim porque a tela fica igual ao banco mesmo se algum dado tiver mudado fora dela. No excluir, removo só o item do array local, então economizo uma nova requisição.
+### Etapas
 
-## Um endereço, quatro ações
+- Aula 16: Angular Router, páginas Home/Sobre, Angular Material, rota ativa com `routerLinkActive` e componentes standalone.
+- Aula 17: integração com a API PHP para projetos e tecnologias.
+- Aula 18: formulário reativo de contato com validação, POST e feedback de envio.
+- Aula 19: CRUD de projetos e área de gestão com status de rascunho/publicado.
 
-O endereço da API é o mesmo, mas o servidor olha o método HTTP da requisição antes de decidir o que fazer. GET consulta, POST cria, PUT altera e DELETE remove, então não é necessário criar uma URL diferente para cada ação.
+## Tecnologias
 
-Apagar não deve ser feito por GET porque GET é usado para leitura e pode ser acessado automaticamente por navegador, cache ou robô. A exclusão precisa acontecer somente quando uma requisição DELETE for enviada de propósito.
+Angular, TypeScript, Angular Material, HTML, CSS, PHP, PDO, MariaDB e Git.
 
-## Status dos projetos
+## 🎯 Autoavaliação — Aula 17
 
-Na gestão, a chamada usa `?todos=1` para trazer também os rascunhos. A página pública continua chamando a mesma API sem esse parâmetro e recebe somente os projetos publicados.
+Conceito pretendido: B
 
-O status escolhido no formulário também vai no POST ou PUT. Assim dá para guardar um projeto ainda incompleto sem mostrar ele na parte pública do portfólio.
+Justificativa:
 
-## Duplo clique em Adicionar
+- Consumo da API de projetos: `portfolio-angular/src/app/projeto.service.ts`, linhas 26–41, concentra as requisições; `portfolio-angular/src/app/projetos/projetos.ts` recebe os dados e a tela mostra carregamento, erro e estado vazio em `projetos.html`.
+- Catálogo: `portfolio-angular/src/app/tecnologia.service.ts` busca as tecnologias e `portfolio-angular/src/app/catalogo/catalogo.html` mostra carregamento, erro e mensagem quando não há itens.
+- Botão GitHub: `portfolio-angular/src/app/projetos/projetos.html` usa `[href]` para abrir o repositório do projeto quando o link existe.
+- Boas práticas: a URL base da API está em `portfolio-angular/src/app/api-url.ts`; as chamadas HTTP ficam nos services e os componentes cuidam do estado da tela.
 
-Se duas requisições POST chegarem ao servidor, são duas criações diferentes e podem aparecer dois registros no banco. Por isso o botão fica desabilitado enquanto `salvando` é verdadeiro, evitando um segundo envio enquanto a primeira requisição ainda está acontecendo.
+## 🎯 Autoavaliação — Aula 18
 
-## Pré-voo do CORS
+Conceito pretendido: B
 
-Antes de alguns pedidos como PUT e DELETE, o navegador pode enviar OPTIONS para saber se aquele servidor aceita o método. A API responde 204 e informa os métodos permitidos no cabeçalho `Access-Control-Allow-Methods`.
+- Formulário reativo: `portfolio-angular/src/app/contato/contato.ts`, linhas 19–23, cria os campos com `Validators`.
+- Erros por campo: `portfolio-angular/src/app/contato/contato.html`, linhas 8–29, mostra as mensagens de nome, e-mail e mensagem depois que o campo é tocado.
+- POST e estados de envio: `portfolio-angular/src/app/contato.service.ts`, linhas 21–25, faz o POST; em `contato.ts`, a função `onSubmit()` trata sucesso, erro, reset do formulário e bloqueio durante o envio.
+- Endpoint: `api/contato.php`, linhas 20–54, lê o JSON, valida novamente no servidor, grava com `prepare` e `execute` e responde 201 ou 400.
+- Feedback na tela: `contato.html` mostra as mensagens de sucesso e erro depois da tentativa de envio.
 
-## Testes com curl
+## 🎯 Autoavaliação — Aula 19
 
-Estes são os comandos que uso para conferir a API. O endereço deve ser trocado pela URL atual da porta 8000 do Codespace.
+Conceito pretendido: B
+
+- API por verbo e status: `api/projetos.php`, linhas 18–166, trata GET, POST, PUT, DELETE e OPTIONS. O parâmetro `?todos=1` é usado pela gestão para incluir rascunhos.
+- Gestão pelo service: `portfolio-angular/src/app/gestao/gestao.ts` usa somente `ProjetoService`; o acesso HTTP fica em `portfolio-angular/src/app/projeto.service.ts`, linhas 26–41.
+- Formulário e status: `portfolio-angular/src/app/gestao/gestao.html`, a partir da linha 9, tem formulário reativo, validação de nome e ano e escolha entre rascunho e publicado.
+- Atualização sem F5: `portfolio-angular/src/app/gestao/gestao.ts`, a partir da linha 82, salva o projeto e carrega a lista novamente.
+- Exclusão: `gestao.ts`, a partir da linha 118, pede confirmação com o nome do projeto e remove o item da lista depois da resposta da API.
+- Estados da interface: a tela mostra carregamento, lista vazia, sucesso e erro.
+
+## Aula 19: como a API atende quatro ações
+
+O endereço continua o mesmo porque o servidor também verifica o método HTTP da requisição.
+
+GET consulta dados; POST cria um novo projeto; PUT altera o projeto indicado pelo `id`; DELETE remove esse projeto. Dessa forma, a rota continua única e cada ação fica explícita pelo verbo HTTP.
+
+Apagar um projeto por GET não seria adequado porque GET representa leitura e pode ser acessado automaticamente por navegador, cache ou outras ferramentas. A exclusão só acontece com uma requisição DELETE.
+
+## Aula 19: testes com curl
+
+Com a API e o banco ligados, estes comandos permitem conferir os principais retornos:
 
 ```bash
-API="https://SEU-CODESPACE-8000.app.github.dev/api/projetos.php"
+API="http://localhost:8000/api/projetos.php"
 
 # GET
 curl -i "$API"
@@ -72,74 +155,59 @@ curl -i "$API"
 # POST
 curl -i -X POST "$API" \
   -H "Content-Type: application/json" \
-  -d '{"nome":"Projeto da Luara","descricao":"Projeto cadastrado pela área de gestão","tecnologias":"Angular, PHP","link_github":"","ano":2026,"status":"rascunho"}'
+  -d '{"nome":"Projeto teste","descricao":"Teste do CRUD","tecnologias":"Angular, PHP","link_github":"","ano":2026,"status":"rascunho"}'
 
-# POST inválido: deve responder 400
+# POST inválido: 400
 curl -i -X POST "$API" \
   -H "Content-Type: application/json" \
   -d '{"nome":"","ano":2026,"status":"publicado"}'
 
-# PUT sem id: deve responder 400
+# PUT sem id: 400
 curl -i -X PUT "$API" \
   -H "Content-Type: application/json" \
   -d '{"nome":"Teste","ano":2026,"status":"publicado"}'
 
-# PUT com um id existente: deve responder 200
+# PUT com um id existente: 200
 curl -i -X PUT "$API?id=1" \
   -H "Content-Type: application/json" \
-  -d '{"nome":"Projeto atualizado","descricao":"","tecnologias":"Angular","link_github":"","ano":2026,"status":"publicado"}'
+  -d '{"nome":"Projeto atualizado","descricao":"Teste","tecnologias":"Angular","link_github":"","ano":2026,"status":"publicado"}'
 
-# id inexistente: deve responder 404
+# DELETE de id inexistente: 404
 curl -i -X DELETE "$API?id=999999"
 
-# verbo não tratado: deve responder 405
+# verbo não tratado: 405
 curl -i -X PATCH "$API"
 
-# preflight: deve responder 204 e listar os métodos permitidos
+# preflight do CORS: 204
 curl -i -X OPTIONS "$API"
 ```
 
-Os códigos acima são os retornos esperados pelo código atual. Antes da entrega, vale rodar os comandos no Codespace para registrar a saída real do ambiente e confirmar a conexão com o banco.
+Os retornos definidos pelo código são:
 
-## O que observar no Network
+```
+POST válido     -> 201 Created
+PUT válido      -> 200 OK
+DELETE válido   -> 204 No Content
+Dados inválidos -> 400 Bad Request
+ID inexistente  -> 404 Not Found
+Verbo inválido  -> 405 Method Not Allowed
+OPTIONS         -> 204 No Content
+```
 
-Ao adicionar um projeto, a requisição deve aparecer como POST e a API responde 201 quando cria o registro. Ao excluir, o método é DELETE e a resposta é 204, porque a exclusão foi concluída e não há conteúdo para devolver.
+## Aula 19: atualização da lista
 
-O `Content-Type` das respostas JSON é `application/json; charset=utf-8`. No DELETE com 204 não existe corpo de resposta.
+Depois de salvar, a tela pede a lista novamente à API para trazer os dados como ficaram no banco.
 
-## Sobre usar um link para excluir
+Ao excluir, ela remove o item diretamente do array local, porque já sabe exatamente qual registro foi removido. Recarregar a lista custa uma requisição extra, mas garante sincronização com o banco; alterar o array local é mais rápido, porém depende do estado atual da tela.
 
-Um `<a href=".../projetos.php?id=5">` faz uma navegação GET. Eu não usaria isso para apagar porque só visitar o endereço poderia causar uma alteração no banco. Para conferir, basta abrir o Network: o link aparece como GET, enquanto o botão da gestão chama o método DELETE do service.
+## Aula 19: uma operação na aba Network
 
-## Polimento
+Ao adicionar um projeto, a requisição usada é POST e a API responde 201 com JSON.
 
-Acrescentei um estado específico quando não existe nenhum projeto cadastrado, em vez de deixar a área vazia. Também deixei o foco do teclado bem visível nos campos e botões.
+Ao apagar, a requisição usada é DELETE e a resposta é 204, porque depois da exclusão não existe conteúdo para devolver.
 
-Para a parte de foco, consultei a documentação de acessibilidade do Angular Material, que recomenda indicadores de foco fortes e fáceis de perceber:
+## Aula 19: clique duplo ao salvar
 
-https://material.angular.dev/
+Enquanto um projeto está sendo salvo, `salvando` fica como `true` e o botão permanece desabilitado.
 
-## Ficha de diagnóstico
-
-O principal problema era que a API de projetos só fazia GET e a aplicação ainda não tinha a rota de gestão. Também não existiam POST, PUT e DELETE no service.
-
-Corrigi o CRUD, a rota `/gestao`, o campo de status, os estados de tela, a atualização sem F5 e o comportamento em telas menores. Mantive o `confirm()` nativo para exclusão porque ele já atende ao objetivo da atividade sem adicionar outra dependência só para essa confirmação.
-
-Ainda precisa ser conferida no Codespace a saída real dos testes de curl e do Network, porque isso depende da API e do MariaDB estarem rodando no ambiente.
-
-## 🎯 Autoavaliação
-
-**Conceito pretendido: A**
-
-- R1 — API decide pelo verbo e trata GET/POST/PUT/DELETE: `api/projetos.php`, linhas 18–166.
-- R1 — POST com 201: `api/projetos.php`, a partir da linha 36.
-- R1 — PUT com validação e 404: `api/projetos.php`, a partir da linha 79.
-- R1 — DELETE com 204: `api/projetos.php`, a partir da linha 143.
-- R2 — acesso à API fica no service: `portfolio-angular/src/app/projeto.service.ts`, linhas 25–40.
-- R2 — formulário com status e validação: `portfolio-angular/src/app/gestao/gestao.html`, linhas 11–58.
-- R2 — mensagens de erro e estados da tela: `portfolio-angular/src/app/gestao/gestao.html`, linhas 62–97.
-- R3 — salvar atualiza sem F5 e limpa o formulário: `portfolio-angular/src/app/gestao/gestao.ts`, linhas 82–116.
-- R3 — excluir atualiza o array local: `portfolio-angular/src/app/gestao/gestao.ts`, linhas 118–151.
-- R4 — justificativas e comparação das estratégias: seções acima deste README.
-- R5 — viewport: `portfolio-angular/src/index.html`, linha 7.
-- R5 — responsividade e foco: `portfolio-angular/src/app/gestao/gestao.css`.
+Isso evita que dois cliques rápidos disparem dois POSTs e criem registros duplicados.
