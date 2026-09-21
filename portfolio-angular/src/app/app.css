@@ -1,5 +1,5 @@
 mat-sidenav-container {
-  height: 100vh;
+  min-height: 100vh;
 }
 
 mat-sidenav {
@@ -12,6 +12,16 @@ mat-sidenav a {
   justify-content: flex-start;
 }
 
+mat-sidenav-content {
+  min-width: 0;
+}
+
+main {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
 .espacador {
   flex: 1 1 auto;
 }
@@ -19,4 +29,14 @@ mat-sidenav a {
 .ativo {
   font-weight: bold;
   text-decoration: underline;
+}
+
+@media (max-width: 760px) {
+  mat-toolbar > a {
+    display: none;
+  }
+
+  main {
+    padding: 16px !important;
+  }
 }

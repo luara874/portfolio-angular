@@ -3,12 +3,18 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Projeto {
-  id: number;
+  id?: number;
   nome: string;
   descricao: string;
   tecnologias: string;
   link_github: string;
   ano: number;
+  status: 'rascunho' | 'publicado' | 'arquivado';
+}
+
+interface RespostaProjeto {
+  id?: number;
+  mensagem?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -16,7 +22,20 @@ export class ProjetoService {
   private http = inject(HttpClient);
   private url = 'https://ubiquitous-giggle-pjvxx4xv4x653rw6v-8000.app.github.dev/api/projetos.php';
 
-  listar(): Observable<Projeto[]> {
-    return this.http.get<Projeto[]>(this.url);
+  listar(todos = false): Observable<Projeto[]> {
+    const url = todos ? `${this.url}?todos=1` : this.url;
+    return this.http.get<Projeto[]>(url);
+  }
+
+  criar(projeto: Projeto): Observable<RespostaProjeto> {
+    return this.http.post<RespostaProjeto>(this.url, projeto);
+  }
+
+  atualizar(id: number, projeto: Projeto): Observable<RespostaProjeto> {
+    return this.http.put<RespostaProjeto>(`${this.url}?id=${id}`, projeto);
+  }
+
+  excluir(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}?id=${id}`);
   }
 }
