@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from './api-url';
 
 export interface Tecnologia {
   id: number;
@@ -13,7 +14,7 @@ export interface Tecnologia {
 @Injectable({ providedIn: 'root' })
 export class TecnologiaService {
   private http = inject(HttpClient);
-  private url = 'https://ubiquitous-giggle-pjvxx4xv4x653rw6v-8000.app.github.dev/api/tecnologias.php';
+  private url = `${API_URL}/tecnologias.php`;
 
   listar(): Observable<Tecnologia[]> {
     return this.http.get<Tecnologia[]>(this.url);
