@@ -1,0 +1,103 @@
+<section class="gestao">
+  <header class="cabecalho">
+    <div>
+      <h2>Área de Gestão</h2>
+      <p>Adicione, edite ou remova os projetos do portfólio.</p>
+    </div>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="salvar()" class="formulario">
+    <h3>{{ editandoId ? 'Editar projeto' : 'Adicionar projeto' }}</h3>
+
+    <label for="nome">Nome do projeto</label>
+    <input id="nome" type="text" formControlName="nome">
+
+    @if (form.controls.nome.touched && form.controls.nome.hasError('required')) {
+      <p class="erro-campo">Informe o nome do projeto.</p>
+    } @else if (form.controls.nome.touched && form.controls.nome.hasError('minlength')) {
+      <p class="erro-campo">O nome precisa ter pelo menos 3 caracteres.</p>
+    }
+
+    <label for="descricao">Descrição</label>
+    <textarea id="descricao" formControlName="descricao" rows="4"></textarea>
+
+    <label for="tecnologias">Tecnologias</label>
+    <input id="tecnologias" type="text" formControlName="tecnologias">
+
+    <label for="link_github">Link do GitHub</label>
+    <input id="link_github" type="url" formControlName="link_github">
+
+    <div class="linha-form">
+      <div>
+        <label for="ano">Ano</label>
+        <input id="ano" type="number" formControlName="ano">
+
+        @if (form.controls.ano.touched && form.controls.ano.invalid) {
+          <p class="erro-campo">Informe um ano válido.</p>
+        }
+      </div>
+
+      <div>
+        <label for="status">Status</label>
+        <select id="status" formControlName="status">
+          <option value="rascunho">Rascunho</option>
+          <option value="publicado">Publicado</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="acoes-form">
+      <button type="submit" [disabled]="salvando">
+        {{ salvando ? 'Salvando...' : (editandoId ? 'Salvar alterações' : 'Adicionar projeto') }}
+      </button>
+
+      @if (editandoId) {
+        <button type="button" class="secundario" (click)="cancelarEdicao()" [disabled]="salvando">
+          Cancelar edição
+        </button>
+      }
+    </div>
+  </form>
+
+  @if (sucesso) {
+    <p class="mensagem sucesso" role="status">{{ sucesso }}</p>
+  }
+
+  @if (erro) {
+    <p class="mensagem erro" role="alert">{{ erro }}</p>
+  }
+
+  <section class="lista">
+    <h3>Projetos cadastrados</h3>
+
+    @if (carregando) {
+      <p class="estado">Carregando projetos...</p>
+    } @else if (!erro && projetos.length === 0) {
+      <p class="estado">Você ainda não cadastrou nenhum projeto.</p>
+    } @else {
+      @for (projeto of projetos; track projeto.id) {
+        <article class="linha-projeto">
+          <div class="dados-projeto">
+            <strong>{{ projeto.nome }}</strong>
+            <span>{{ projeto.ano }}</span>
+            <span class="status">{{ projeto.status }}</span>
+          </div>
+
+          <div class="acoes-projeto">
+            <button type="button" class="secundario" (click)="editar(projeto)">
+              Editar
+            </button>
+
+            <button
+              type="button"
+              class="perigo"
+              (click)="excluir(projeto)"
+              [disabled]="excluindoId === projeto.id">
+              {{ excluindoId === projeto.id ? 'Excluindo...' : 'Excluir' }}
+            </button>
+          </div>
+        </article>
+      }
+    }
+  </section>
+</section>
