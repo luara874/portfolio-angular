@@ -1,6 +1,8 @@
 name: Verificar projeto
 
 on:
+  push:
+    branches: [padroniza-readme-e-validacao]
   pull_request:
     branches: [main]
 
