@@ -2,13 +2,14 @@
 
 // conexao.php - conexao PDO com o MariaDB (reutilizavel)
 
-$host    = 'localhost';
-$db      = 'dwii_db';
-$user    = 'dwii_user';
-$pass    = 'dwii2026';
-$charset = 'utf8mb4';
+$host = getenv('DB_HOST') ?: 'localhost';
+$db = getenv('DB_NAME') ?: 'dwii_db';
+$user = getenv('DB_USER') ?: 'dwii_user';
 
-// host 'localhost' conecta pelo socket local (casa com o usuario @'localhost')
+$senhaAmbiente = getenv('DB_PASS');
+$pass = $senhaAmbiente === false ? 'dwii2026' : $senhaAmbiente;
+
+$charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 

@@ -1,5 +1,14 @@
-@if (carregando) { <p>Carregando catalogo...</p> }
-@if (erro) { <p>{{ erro }}</p> }
+@if (carregando) {
+  <p>Carregando catálogo...</p>
+}
+
+@if (erro) {
+  <p>{{ erro }}</p>
+}
+
+@if (!carregando && !erro && tecnologias.length === 0) {
+  <p>Nenhuma tecnologia cadastrada ainda.</p>
+}
 
 @for (t of tecnologias; track t.id) {
   <mat-card style="margin-bottom: 12px;">

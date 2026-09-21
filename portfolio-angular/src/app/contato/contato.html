@@ -1,5 +1,3 @@
-<!-- src/app/contato/contato.html -->
-
 <h2>Fale comigo</h2>
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -7,20 +5,36 @@
   <label for="nome">Nome</label>
   <input id="nome" type="text" formControlName="nome">
 
+  @if (form.controls.nome.touched && form.controls.nome.hasError('required')) {
+    <p class="erro">Informe seu nome.</p>
+  } @else if (form.controls.nome.touched && form.controls.nome.hasError('minlength')) {
+    <p class="erro">O nome precisa ter pelo menos 3 caracteres.</p>
+  }
+
   <label for="email">E-mail</label>
   <input id="email" type="email" formControlName="email">
+
+  @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+    <p class="erro">Informe seu e-mail.</p>
+  } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
+    <p class="erro">Informe um e-mail válido.</p>
+  }
 
   <label for="mensagem">Mensagem</label>
   <textarea id="mensagem" formControlName="mensagem" rows="4"></textarea>
 
-  <!-- botão desabilita enquanto envia; troca o texto -->
+  @if (form.controls.mensagem.touched && form.controls.mensagem.hasError('required')) {
+    <p class="erro">Escreva uma mensagem.</p>
+  } @else if (form.controls.mensagem.touched && form.controls.mensagem.hasError('minlength')) {
+    <p class="erro">A mensagem precisa ter pelo menos 10 caracteres.</p>
+  }
+
   <button type="submit" [disabled]="enviando">
     {{ enviando ? 'Enviando...' : 'Enviar' }}
   </button>
 
 </form>
 
-<!-- estados de retorno -->
 @if (sucesso) {
   <p class="ok">{{ sucesso }}</p>
 }
