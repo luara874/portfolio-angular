@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from './api-url';
 
 export interface Projeto {
   id?: number;
@@ -20,7 +21,7 @@ interface RespostaProjeto {
 @Injectable({ providedIn: 'root' })
 export class ProjetoService {
   private http = inject(HttpClient);
-  private url = 'https://ubiquitous-giggle-pjvxx4xv4x653rw6v-8000.app.github.dev/api/projetos.php';
+  private url = `${API_URL}/projetos.php`;
 
   listar(todos = false): Observable<Projeto[]> {
     const url = todos ? `${this.url}?todos=1` : this.url;
