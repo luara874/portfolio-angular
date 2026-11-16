@@ -51,32 +51,36 @@ function App() {
       <Cabecalho />
       <main id="conteudo" tabIndex={-1}>
         <section className="apresentacao" id="inicio" aria-labelledby="titulo-inicio">
-          <div className="apresentacao-texto">
-            <p className="sobretitulo">Portfólio pessoal · IFPR</p>
-            <h1 id="titulo-inicio"><span>Luara</span> <span>Munkemer</span> <span className="nome-destaque">Fornazari</span></h1>
-            <p className="introducao">Projetos, trajetória e aprendizado em desenvolvimento de software.</p>
-            <a className="link-destaque" href="#projetos">Conheça os projetos <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2v12m-5-5 5 5 5-5" /></svg></a>
+          <div className="apresentacao-faixa">
+            <p className="sobretitulo">Portfólio pessoal / IFPR</p>
+            <span>Desenvolvimento de software</span>
           </div>
-          <aside className="sobre" id="sobre" aria-labelledby="titulo-sobre">
-            <p className="sobretitulo" id="titulo-sobre">Sobre mim</p>
-            <h2>Estudante de Técnico em Informática.</h2>
-            <p>IFPR</p>
-            <div className="sobre-habilidades">
-              <h3>Aprendizado</h3>
-              <p>HTML, CSS, TypeScript, Angular e lógica de programação.</p>
+          <div className="apresentacao-corpo">
+            <div>
+              <h1 id="titulo-inicio">Luara Munkemer <span>Fornazari</span></h1>
+              <p className="introducao">Projetos, trajetória e aprendizado em desenvolvimento de software.</p>
+              <a className="link-destaque" href="#projetos">Explorar projetos <span aria-hidden="true">↓</span></a>
             </div>
-          </aside>
+            <aside className="sobre" id="sobre" aria-labelledby="titulo-sobre">
+              <h2 id="titulo-sobre">Sobre mim</h2>
+              <dl>
+                <div><dt>Formação</dt><dd>Técnico em Informática</dd></div>
+                <div><dt>Instituição</dt><dd>IFPR</dd></div>
+              </dl>
+              <p>Estudante de HTML, CSS, TypeScript, Angular e lógica de programação.</p>
+            </aside>
+          </div>
         </section>
 
         <section className="projetos" id="projetos" aria-labelledby="titulo-projetos">
           <div className="cabecalho-secao">
             <div>
-              <p className="sobretitulo">Desenvolvimento na prática</p>
+              <p className="sobretitulo">Projetos publicados</p>
               <h2 id="titulo-projetos">Projetos</h2>
             </div>
             <div className="acoes-projetos">
               {!carregando && !erro && <p className="total-projetos">{projetos.length} {projetos.length === 1 ? 'projeto' : 'projetos'}</p>}
-              <button className="atualizar" type="button" onClick={atualizarProjetos} disabled={carregando}>Atualizar</button>
+              <button className="atualizar" type="button" onClick={atualizarProjetos} disabled={carregando}><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 7a5 5 0 1 0-1 4M13 2v5H8" /></svg>Atualizar</button>
             </div>
           </div>
           {carregando && <p className="estado" role="status">Carregando projetos...</p>}

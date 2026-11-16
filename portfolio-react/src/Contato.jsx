@@ -20,9 +20,9 @@ function Contato() {
   return (
     <section className="contato" id="contato" aria-labelledby="titulo-contato">
       <div className="contato-intro">
-        <p className="sobretitulo">Uma mensagem, um começo</p>
+        <p className="sobretitulo">Formulário de demonstração</p>
         <h2 id="titulo-contato">Contato</h2>
-        <p>Um espaço para escrever sobre projetos e ideias.</p>
+        <p>Escreva uma mensagem e experimente o formulário.</p>
         <p className="nota-local" id="ajuda-contato">Demonstração local. Os dados não são enviados nem armazenados.</p>
       </div>
       <div className="formulario-painel">

@@ -1,12 +1,11 @@
-// As props são somente leitura; o App entrega os campos num objeto.
 function CardProjeto({ projeto }) {
   return (
     <article className="card">
-      <div className="card-titulo">
+      <div className="card-corpo">
+        <p className="card-ano">{projeto.ano}</p>
         <h3>{projeto.nome}</h3>
-        <span className="card-ano">{projeto.ano}</span>
+        <p className="card-descricao">{projeto.descricao}</p>
       </div>
-      <p className="card-descricao">{projeto.descricao}</p>
       <div className="card-detalhes">
         <p className="meta">{projeto.tecnologias}</p>
         {projeto.link_github && (

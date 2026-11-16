@@ -31,13 +31,19 @@ function Catalogo() {
 
   return (
     <section className="catalogo" id="catalogo" aria-labelledby="titulo-catalogo">
-      <h2 id="titulo-catalogo">Catálogo de tecnologias</h2>
+      <div className="cabecalho-secao">
+        <div><p className="sobretitulo">Ferramentas e linguagens</p><h2 id="titulo-catalogo">Catálogo de tecnologias</h2></div>
+        {!carregando && !erro && <p className="total-tecnologias">{tecnologias.length} tecnologias</p>}
+      </div>
       {carregando && <p className="estado" role="status">Carregando catálogo...</p>}
       {erro && <p className="erro estado" role="alert">{erro}</p>}
       {!carregando && !erro && tecnologias.length === 0 && <p className="estado vazio">Nenhuma tecnologia cadastrada ainda</p>}
       <ul className="tecnologias" aria-busy={carregando}>
         {tecnologias.map((t) => (
-          <li key={t.id}><strong>{t.nome}</strong><span>{t.categoria}</span></li>
+          <li key={t.id}>
+            <div className="tecnologia-titulo"><strong>{t.nome}</strong><span>{t.categoria}</span></div>
+            {t.descricao && <p>{t.descricao}</p>}
+          </li>
         ))}
       </ul>
     </section>

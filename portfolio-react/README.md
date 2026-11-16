@@ -37,3 +37,6 @@ npm run lint
 `resposta.ok` é verificado antes de JSON. O fim do carregamento é tratado também quando há falha. Os dados exibidos são os retornados pela API, incluindo a quantidade e os links cadastrados; endereços de exemplo no banco precisam ser confirmados pela Luara.
 
 Veja no README principal, seção Aula 27, os testes reais, as simulações e a limitação de certificado do Chromium desta máquina. Os testes com dados reais por retransmissor de curl não equivalem a aprovar o caminho HTTPS direto do navegador. A nota única sobre uso de IA está no README principal.
+
+
+O redesign da Aula 27 usa cabeçalho horizontal, base clara branca/cinza, destaque roxo, apresentação com formação, grid de projetos e lista de tecnologias. Contato e rodapé foram recompostos. O menu inclui Catálogo e se adapta a 320 px, com foco de teclado e sem rolagem horizontal nos testes realizados. A implementação e o redesign têm commits separados.

@@ -1002,4 +1002,16 @@ Nos testes simulados de sucesso em 1440/390/320 px, foram conferidos contador, T
 
 A implementação funcional será registrada separadamente do redesenho solicitado. Não há declaração de IA no conteúdo visual do site.
 
+### Redesign visual da Aula 27 — segundo commit
+
+Toda a composição do React foi refeita: a faixa lateral escura saiu, o cabeçalho agora é horizontal e a página usa branco/cinza suave, texto grafite e roxo moderado. A apresentação tem nome em caixa mista, tipografia sem serifa mais leve, faixa de identificação e dados de formação em uma coluna própria. Nenhuma experiência, imagem pessoal, estatística ou depoimento foi inventado.
+
+Os projetos usam grid adaptável, com ano, título, descrição, tecnologias e link em áreas distintas; o número de cards segue a API, sem limite fixo. O catálogo tem uma seção própria com lista semântica, nome, categoria e descrição retornada pela API. Contato e rodapé também receberam outra composição, com campos delimitados, labels visíveis, botão de envio, contador e aviso claramente separados.
+
+O menu inclui Catálogo e navega por âncoras, sem Router; em celular as opções se acomodam em duas linhas, sem esconder links nem cortar conteúdo. Há atalho para pular ao conteúdo, foco visível, hover discreto e respeito a movimento reduzido. A apresentação visual usa base clara inclusive quando o sistema prefere tema escuro, conforme a direção branca/cinza solicitada. Erros ficam em vermelho com mensagem textual; carregamento e vazio têm blocos distintos, sem depender apenas de cor. Não há gradientes, neon, vidro, sombras pesadas ou animações decorativas.
+
+Os comportamentos do commit funcional permanecem: busca remota, Atualizar, estados independentes, map/key, formulário local, contador e limpeza. A URL de `api.js` e a autenticação do backend não mudaram no commit visual. A nota de IA fica somente no README principal, sem aparecer no site.
+
+**Verificação final do redesign:** build e lint passaram novamente. As leituras reais por retransmissor de teste foram repetidas em 1440/390/320 px, com cinco projetos, seis tecnologias, Atualizar e os cinco destinos do menu corretos. Os sete cenários de falha/espera/vazio e os testes de formulário por teclado nas três larguras também foram repetidos, sem exceções não tratadas, POST, recarga ou rolagem horizontal. Capturas finais de desktop e celular foram inspecionadas visualmente. Continua valendo a limitação explícita de certificado no navegador direto; o site não recebeu nenhum proxy ou desativação de TLS.
+
 Uso de IA: ChatGPT/Codex auxiliou na implementação, documentação e testes deste projeto.
