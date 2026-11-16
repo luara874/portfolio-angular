@@ -19,10 +19,10 @@ app.use(express.json());
 // ==========================================
 function autenticar(req, res, next) {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Extrai o token do formato "Bearer <TOKEN>"
+  const token = authHeader?.match(/^Bearer (\S+)$/i)?.[1];
 
   if (!token) {
-    return res.status(401).json({ erro: 'Token ausente' });
+    return res.status(401).json({ erro: 'Faça login e envie o token para continuar' });
   }
 
   try {
@@ -30,7 +30,7 @@ function autenticar(req, res, next) {
     req.usuario = usuario;
     next(); // Passa o bastão para a rota
   } catch (err) {
-    return res.status(401).json({ erro: 'Token invalido ou expirado' });
+    return res.status(401).json({ erro: 'Seu token não é válido ou venceu. Entre novamente' });
   }
 }
 
@@ -38,33 +38,33 @@ function autenticar(req, res, next) {
 // ROTA DE LOGIN (POST /api/login)
 // ==========================================
 app.post('/api/login', async (req, res) => {
-  const { email, senha } = req.body;
+  const { email, senha } = req.body ?? {};
 
-  if (!email || !senha) {
+  if (typeof email !== 'string' || !email.trim() || typeof senha !== 'string' || !senha) {
     return res.status(400).json({ erro: 'Informe email e senha' });
   }
 
   try {
     const [linhas] = await pool.execute(
-      'SELECT * FROM usuarios WHERE email = ?',
+      'SELECT id, email, senha_hash FROM usuarios WHERE email = ?',
       [email]
     );
 
     if (linhas.length === 0) {
-      return res.status(401).json({ erro: 'Email ou senha invalidos' });
+      return res.status(401).json({ erro: 'Não foi possível entrar com esse e-mail e senha' });
     }
 
     const usuario = linhas[0];
     const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
 
     if (!senhaValida) {
-      return res.status(401).json({ erro: 'Email ou senha invalidos' });
+      return res.status(401).json({ erro: 'Não foi possível entrar com esse e-mail e senha' });
     }
 
     const token = jwt.sign(
       { id: usuario.id, email: usuario.email },
       SEGREDO,
-      { expiresIn: '2h' }
+      { expiresIn: '30m' }
     );
 
     res.json({ token });
@@ -78,13 +78,22 @@ app.post('/api/login', async (req, res) => {
 // ==========================================
 app.get('/api/projetos', async (req, res) => {
   try {
-    const todos = req.query.todos === '1';
-
-    const sql = todos
-      ? "SELECT id, nome, descricao, tecnologias, link_github, ano, status FROM projetos ORDER BY ano DESC, id DESC"
-      : "SELECT id, nome, descricao, tecnologias, link_github, ano, status FROM projetos WHERE status = 'publicado' ORDER BY ano DESC, id DESC";
+    // Mesmo com ?todos=1, a leitura pública nunca revela rascunhos.
+    const sql = "SELECT id, nome, descricao, tecnologias, link_github, ano, status FROM projetos WHERE status = 'publicado' ORDER BY ano DESC, id DESC";
 
     const [linhas] = await pool.execute(sql);
+    return res.json(linhas);
+  } catch (erro) {
+    return res.status(500).json({ erro: `Falha no servidor: ${erro.message}` });
+  }
+});
+
+// Aula 24: esta rota vem antes de /:id para "todos" não ser lido como um id.
+app.get('/api/projetos/todos', autenticar, async (req, res) => {
+  try {
+    const [linhas] = await pool.execute(
+      'SELECT id, nome, descricao, tecnologias, link_github, ano, status FROM projetos ORDER BY ano DESC, id DESC'
+    );
     return res.json(linhas);
   } catch (erro) {
     return res.status(500).json({ erro: `Falha no servidor: ${erro.message}` });
@@ -120,8 +129,13 @@ app.post('/api/projetos', autenticar, async (req, res) => {
   try {
     const dados = req.body;
 
-    if (!dados || !dados.nome) {
+    if (!dados || typeof dados.nome !== 'string' || !dados.nome.trim()) {
       return res.status(400).json({ erro: 'Informe pelo menos o nome do projeto' });
+    }
+
+    const status = dados.status ?? 'publicado';
+    if (!['rascunho', 'publicado', 'arquivado'].includes(status)) {
+      return res.status(400).json({ erro: 'Status de projeto invalido' });
     }
 
     const sql = 'INSERT INTO projetos (nome, descricao, tecnologias, link_github, ano, status) VALUES (?, ?, ?, ?, ?, ?)';
@@ -131,7 +145,7 @@ app.post('/api/projetos', autenticar, async (req, res) => {
       dados.tecnologias ?? '',
       dados.link_github ?? '',
       dados.ano ?? new Date().getFullYear(),
-      'publicado'
+      status
     ]);
 
     res.status(201).json({ id: resultado.insertId });
@@ -148,13 +162,18 @@ app.put('/api/projetos/:id', autenticar, async (req, res) => {
     const { id } = req.params;
     const dados = req.body;
 
-    if (!dados || !dados.nome) {
+    if (!dados || typeof dados.nome !== 'string' || !dados.nome.trim()) {
       return res.status(400).json({ erro: 'Informe pelo menos o nome do projeto' });
+    }
+
+    const status = dados.status;
+    if (status !== undefined && !['rascunho', 'publicado', 'arquivado'].includes(status)) {
+      return res.status(400).json({ erro: 'Status de projeto invalido' });
     }
 
     const sql = `
       UPDATE projetos 
-      SET nome = ?, descricao = ?, tecnologias = ?, link_github = ?, ano = ?
+      SET nome = ?, descricao = ?, tecnologias = ?, link_github = ?, ano = ?, status = COALESCE(?, status)
       WHERE id = ?
     `;
 
@@ -164,6 +183,7 @@ app.put('/api/projetos/:id', autenticar, async (req, res) => {
       dados.tecnologias ?? '',
       dados.link_github ?? '',
       dados.ano ?? new Date().getFullYear(),
+      status ?? null,
       id
     ]);
 
@@ -205,6 +225,56 @@ app.get('/api/tecnologias', async (req, res) => {
       "SELECT id, nome, categoria, descricao, ano_criacao FROM tecnologias ORDER BY categoria, nome"
     );
     return res.json(linhas);
+  } catch (erro) {
+    return res.status(500).json({ erro: `Falha no servidor: ${erro.message}` });
+  }
+});
+
+// Aula 24: a mesma tranca protege as três escritas do catálogo.
+app.post('/api/tecnologias', autenticar, async (req, res) => {
+  try {
+    const dados = req.body;
+    if (!dados || typeof dados.nome !== 'string' || !dados.nome.trim()) {
+      return res.status(400).json({ erro: 'Informe o nome da tecnologia' });
+    }
+    const [resultado] = await pool.execute(
+      'INSERT INTO tecnologias (nome, categoria, descricao, ano_criacao) VALUES (?, ?, ?, ?)',
+      [dados.nome, dados.categoria ?? '', dados.descricao ?? '', dados.ano_criacao ?? null]
+    );
+    return res.status(201).json({ id: resultado.insertId });
+  } catch (erro) {
+    return res.status(500).json({ erro: `Falha no servidor: ${erro.message}` });
+  }
+});
+
+app.put('/api/tecnologias/:id', autenticar, async (req, res) => {
+  try {
+    const dados = req.body;
+    if (!dados || typeof dados.nome !== 'string' || !dados.nome.trim()) {
+      return res.status(400).json({ erro: 'Informe o nome da tecnologia' });
+    }
+    const [resultado] = await pool.execute(
+      'UPDATE tecnologias SET nome = ?, categoria = ?, descricao = ?, ano_criacao = ? WHERE id = ?',
+      [dados.nome, dados.categoria ?? '', dados.descricao ?? '', dados.ano_criacao ?? null, req.params.id]
+    );
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({ erro: 'Tecnologia nao encontrada' });
+    }
+    return res.json({ mensagem: 'Tecnologia atualizada' });
+  } catch (erro) {
+    return res.status(500).json({ erro: `Falha no servidor: ${erro.message}` });
+  }
+});
+
+app.delete('/api/tecnologias/:id', autenticar, async (req, res) => {
+  try {
+    const [resultado] = await pool.execute(
+      'DELETE FROM tecnologias WHERE id = ?', [req.params.id]
+    );
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({ erro: 'Tecnologia nao encontrada' });
+    }
+    return res.sendStatus(204);
   } catch (erro) {
     return res.status(500).json({ erro: `Falha no servidor: ${erro.message}` });
   }

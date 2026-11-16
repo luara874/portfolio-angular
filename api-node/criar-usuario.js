@@ -18,8 +18,9 @@ async function criar() {
     console.log(`Usuario ${res.insertId} criado: ${email}`);
   } catch (err) {
     console.error('Erro ao criar usuario:', err.message);
+    process.exitCode = 1;
   } finally {
-    pool.end();
+    await pool.end();
   }
 }
 

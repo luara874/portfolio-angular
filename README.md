@@ -1,7 +1,7 @@
 # portfolio-angular
 
 Projeto da matéria de Desenvolvimento Web II (IFPR). Front-end em Angular e
-back-end com uma API em PHP + MariaDB.
+back-end original em PHP + MariaDB e API Node/Express com autenticação na Aula 24.
 
 Autora: **Luara Munk**.
 
@@ -11,17 +11,24 @@ Versões do projeto: npm 11.9.0, Angular CLI 21.2.13, Node 24 recomendado, PHP 8
 
 ```
 .
-├── api/
+├── api-node/             # API Node/Express: projetos, catálogo, login e JWT
+│   ├── server.js
+│   ├── db.js
+│   └── criar-usuario.js
+├── api/                  # API PHP preservada das aulas anteriores
 │   ├── projetos.php      # consulta e CRUD dos projetos
 │   ├── tecnologias.php   # catálogo de tecnologias ativas
 │   └── contato.php       # recebe mensagens do formulário de contato
 ├── conexao.php           # conexão PDO com o MariaDB
 ├── sql/
-│   └── setup.sql         # cria o banco, as tabelas e os dados-base
+│   ├── setup.sql         # cria o banco, as tabelas e os dados-base
+│   └── usuarios.sql      # acrescenta os usuários com hash, sem apagar dados
 └── portfolio-angular/    # aplicação Angular (front-end)
 ```
 
-## Back-end (API PHP + MariaDB)
+A API avaliada na Aula 24 é a **Node**, na porta **3000**: veja [Aula 24](#aula-24-a-tranca-da-api-em-node) para subir do zero e conferir as respostas reais. O Angular e a API PHP continuam preservados; a constante `API_URL` do Angular ainda aponta para a API PHP (porta 8000). Mudar somente a porta não basta para migrá-lo, porque os caminhos e contratos PHP/Node são diferentes. Login no front não é cobrado nesta aula.
+
+## Back-end anterior (API PHP + MariaDB)
 
 ### 1. Pré-requisitos
 
@@ -74,7 +81,7 @@ As respostas em JSON usam `Content-Type: application/json; charset=utf-8` e as A
 ```bash
 cd portfolio-angular
 npm install
-ng serve
+npm start
 ```
 
 Acesse http://localhost:4200/.
@@ -100,7 +107,7 @@ Se a API estiver em outro endereço, como em um Codespace, altere somente essa c
 
 ## Tecnologias
 
-Angular, TypeScript, Angular Material, HTML, CSS, PHP, PDO, MariaDB e Git.
+Angular, TypeScript, Angular Material, HTML, CSS, PHP, PDO, Node.js, Express, mysql2, bcryptjs, JWT, MariaDB e Git.
 
 ## 🎯 Autoavaliação — Aula 17
 
@@ -211,3 +218,483 @@ Ao apagar, a requisição usada é DELETE e a resposta é 204, porque depois da 
 Enquanto um projeto está sendo salvo, `salvando` fica como `true` e o botão permanece desabilitado.
 
 Isso evita que dois cliques rápidos disparem dois POSTs e criem registros duplicados.
+
+
+## Aula 24: a tranca da API em Node
+
+### Conferência e mudanças
+
+A revisão partiu do commit `44a7ce1` ("Aula 24 (Parte 1): Login, JWT e teste do POST autenticado"). Ele já continha `db.js`, `criar-usuario.js`, bcrypt, login/JWT, cinco operações de projetos e `autenticar` nas três escritas, inclusive DELETE. A existência desse código foi confirmada por inspeção; o título do commit antigo não é tratado como evidência de teste executado nesta revisão.
+
+Faltavam a tabela de usuários versionada, a documentação de execução e respostas, as três escritas protegidas do catálogo e a leitura protegida de rascunhos. Foram acrescentadas essas partes e corrigido o acesso público por `?todos=1`. POST aceita status e PUT o preserva quando omitido, para um rascunho não ser publicado sem intenção. Login sem corpo agora responde 400; o middleware exige o formato Bearer. O script de criação encerra com código de erro em caso de falha e aguarda o fechamento do pool.
+
+Os 1.079 arquivos de `api-node/node_modules/` foram retirados do controle de versão; o `.gitignore` da raiz ignora dependências e arquivos `.env`. Os pacotes continuam definidos em `package.json`/`package-lock.json`. A aparência, os dados e os arquivos do Angular/PHP não foram alterados nesta aula.
+
+### Como rodar do zero no Codespace
+
+Pré-requisitos: Node 24, npm 11, MariaDB instalado e acesso administrativo local ao banco. Se o MariaDB não estiver instalado no Codespace, instale-o antes: `sudo apt-get update && sudo apt-get install -y mariadb-server`. Os comandos abaixo partem da raiz **deste repositório**.
+
+1. Atualizar a branch e ligar o banco:
+
+```bash
+git switch main
+git pull --ff-only origin main
+sudo service mariadb start
+```
+
+2. Criar as tabelas e depois acrescentar usuários, sem apagar registros existentes:
+
+```bash
+sudo mariadb < sql/setup.sql
+sudo mariadb dwii_db < sql/usuarios.sql
+sudo mariadb -e "SHOW TABLES FROM dwii_db;"
+```
+
+`setup.sql` usa `IF NOT EXISTS` e só insere tecnologias-base ausentes. `usuarios.sql` também usa `IF NOT EXISTS`; não redefine senha nem substitui usuário existente. Faça backup antes de qualquer ajuste em um banco com dados importantes. O resultado inclui `contatos`, `projetos`, `tecnologias` e `usuarios`.
+
+3. Em banco novo, criar o usuário de laboratório da conexão. O comando preserva uma conta já existente e sua senha:
+
+```bash
+sudo mariadb <<'SQL'
+CREATE USER IF NOT EXISTS 'dwii_user'@'localhost' IDENTIFIED BY 'dwii2026';
+GRANT SELECT, INSERT, UPDATE, DELETE ON dwii_db.* TO 'dwii_user'@'localhost';
+SQL
+```
+
+`dwii2026` é a configuração didática de conexão com o banco que já existia no projeto; **não é a senha de login da Luara**. `api-node/db.js` usa `dwii_db`, `dwii_user` e esse valor. Se a conta do seu Codespace já usa outra configuração, mantenha seus dados e ajuste a conexão local, sem redefinir a conta. O socket padrão é `/run/mysqld/mysqld.sock`; para um MariaDB em outro socket, exporte `DB_SOCKET` com o caminho antes dos comandos Node. A revisão usou essa opção para acessar um banco isolado.
+
+4. Instalar as dependências da API pelo lockfile:
+
+```bash
+cd api-node
+npm ci
+```
+
+5. Criar o dono **uma vez**, escolhendo a senha no terminal (ela não aparece na tela nem como texto literal no histórico):
+
+```bash
+EMAIL='20241ctb0100082@estudantes.ifpr.edu.br'
+read -rsp 'Escolha a senha de login (não envie pelo chat): ' SENHA
+printf '\n'
+node criar-usuario.js "$EMAIL" "$SENHA"
+unset SENHA
+```
+
+Esse e-mail foi confirmado durante a revisão. Se ele já existe, o índice UNIQUE recusa a duplicação; não apague o usuário nem substitua sua senha para repetir a aula. A senha pessoal ainda deve ser definida pela Luara no próprio Codespace. Na revisão, esse e-mail foi usado somente com senha temporária aleatória no banco isolado; a conta de teste foi removida depois.
+
+Para conferir o armazenamento sem expor a senha ou o hash inteiro:
+
+```bash
+sudo mariadb dwii_db -e "SELECT id, email, CHAR_LENGTH(senha_hash) AS tamanho_hash, LEFT(senha_hash, 7) AS prefixo FROM usuarios;"
+```
+
+Na execução isolada, o hash tinha 60 caracteres e prefixo `$2b$10$`. `bcrypt.hash(senha, 10)` cria o hash com salt; `bcrypt.compare` confere a senha recebida, sem recuperar a original. Não grave senhas em SQL, README ou Git.
+
+6. Subir a API no primeiro terminal:
+
+```bash
+node server.js
+```
+
+Saída obtida: `API no ar em http://localhost:3000`. O segundo terminal usa os `curl` abaixo. O Node não depende da API PHP nem do Angular para esses testes. Para manter o portfólio Angular original rodando, use os comandos das seções anteriores (PHP na porta 8000 e Angular na 4200); a autenticação desta aula se aplica aos endpoints Node, não aos endpoints PHP legados.
+
+### Escolhas confirmadas e como a tranca funciona
+
+- Validade: **30 minutos**, confirmada durante a revisão para reduzir o tempo de uso de um token exposto. O teste do JWT retornou `exp - iat = 1800` segundos.
+- Login incorreto: `Não foi possível entrar com esse e-mail e senha`.
+- Token ausente ou cabeçalho fora do formato Bearer: `Faça login e envie o token para continuar`.
+- Token inválido ou expirado: `Seu token não é válido ou venceu. Entre novamente`.
+
+As mensagens também foram confirmadas durante a revisão. E-mail inexistente e senha errada respondem o mesmo 401 e corpo para não revelar, pela mensagem, quais e-mails estão cadastrados. Isso não implementa proteção contra diferenças de tempo nem limite de tentativas.
+
+O único `autenticar` verifica o JWT, preenche `req.usuario` e chama `next()` ou retorna 401 antes do SQL. Não há `verify` copiado nas rotas. `GET /api/projetos/todos` vem antes de `/:id`; sem isso, o Express trataria "todos" como id. A lista pública ignora `?todos=1` e só retorna publicados. Um rascunho também não é exposto pelo GET público por id.
+
+O token contém id, e-mail, emissão e expiração: é legível, não criptografado. A API não guarda sessão; reiniciá-la com o mesmo segredo não invalida o token, o que foi verificado com PUT após reinício. Sem `next()`, um middleware que não responde deixa o pedido pendurado; não foi necessário remover essa linha nem reabrir rotas protegidas para concluir a aula.
+
+### SEGREDO e a Aula 29
+
+O `SEGREDO` didático dentro de `server.js` fica público no GitHub: quem o lê consegue assinar tokens, portanto ele não serve para produção.
+Na Aula 29, deve sair do código para `.env` fora do Git, lido por `process.env`; será preciso trocar o segredo já publicado e invalidar os tokens anteriores.
+
+### Rotas × verbos × precisa de token
+
+| Rota Node | Verbo | Token | Resposta principal |
+| --- | --- | --- | --- |
+| `/api/login` | POST | Não | 200 token; 400 dados ausentes; 401 credenciais incorretas |
+| `/api/projetos` | GET | Não | 200 só publicados |
+| `/api/projetos/todos` | GET | Sim | 200 incluindo rascunhos; 401 sem token |
+| `/api/projetos/:id` | GET | Não | 200 publicado; 404 não encontrado/rascunho |
+| `/api/projetos` | POST | Sim | 201 com id; 400 sem nome/status inválido |
+| `/api/projetos/:id` | PUT | Sim | 200; 400 sem nome/status inválido; 404 inexistente |
+| `/api/projetos/:id` | DELETE | Sim | 204 sem corpo; 404 inexistente |
+| `/api/tecnologias` | GET | Não | 200 catálogo |
+| `/api/tecnologias` | POST | Sim | 201 com id; 400 sem nome |
+| `/api/tecnologias/:id` | PUT | Sim | 200; 400 sem nome; 404 inexistente |
+| `/api/tecnologias/:id` | DELETE | Sim | 204 sem corpo; 404 inexistente |
+
+Todas as rotas que exigem token retornam 401 antes da escrita quando ele falta ou é inválido. As consultas com dados do cliente usam parâmetros `?` e `pool.execute`; falhas de banco são capturadas com 500 em JSON. O CORS permanece habilitado, com preflight OPTIONS 204.
+
+### Evidências reais com curl — 16/11/2026
+
+Execução com Node `24.22.1`, npm `11.9.0`, MariaDB `11.4.13` em container isolado, sem acesso aos dados do Codespace da Luara. `npm ci` concluiu com 95 pacotes instalados. A seguir estão comandos e a **primeira linha e corpo efetivamente recebidos**; cabeçalhos adicionais foram omitidos. Senhas e tokens foram ocultados. Os IDs pertencem exclusivamente ao teste: **não execute PUT/DELETE nesses números no seu banco**; use apenas IDs que você acabou de criar para teste.
+
+Os sete casos da tranca estão abaixo: login correto, login incorreto, POST sem token, POST com token, PUT com token, DELETE sem token e GET sem token. Também estão documentados DELETE com token, as operações do catálogo e a leitura protegida do nível A. A fixture "Fixture preservada" foi criada antes das chamadas HTTP para conferir preservação de registros; não é um projeto pessoal da Luara.
+
+No login de exemplo, substitua `<senha>` apenas no terminal local. Guarde o token retornado numa variável do mesmo terminal, sem colocá-lo em arquivo ou no Git:
+
+```bash
+read -rsp 'Cole o token retornado pelo login: ' TOKEN
+printf '\n'
+```
+
+#### Login correto
+
+```bash
+curl -i -X POST http://localhost:3000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"20241ctb0100082@estudantes.ifpr.edu.br","senha":"<senha>"}'
+```
+
+```text
+HTTP/1.1 200 OK
+{"token":"<token oculto>"}
+```
+
+#### Login incorreto
+
+```bash
+curl -i -X POST http://localhost:3000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"20241ctb0100082@estudantes.ifpr.edu.br","senha":"<senha incorreta>"}'
+```
+
+```text
+HTTP/1.1 401 Unauthorized
+{"erro":"Não foi possível entrar com esse e-mail e senha"}
+```
+
+#### E-mail inexistente: mesma resposta
+
+```bash
+curl -i -X POST http://localhost:3000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"nao-existe@example.invalid","senha":"<senha incorreta>"}'
+```
+
+```text
+HTTP/1.1 401 Unauthorized
+{"erro":"Não foi possível entrar com esse e-mail e senha"}
+```
+
+#### Login sem senha
+
+```bash
+curl -i -X POST http://localhost:3000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"20241ctb0100082@estudantes.ifpr.edu.br"}'
+```
+
+```text
+HTTP/1.1 400 Bad Request
+{"erro":"Informe email e senha"}
+```
+
+#### POST de projeto sem token
+
+```bash
+curl -i -X POST http://localhost:3000/api/projetos \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Recusado"}'
+```
+
+```text
+HTTP/1.1 401 Unauthorized
+{"erro":"Faça login e envie o token para continuar"}
+```
+
+#### PUT sem token
+
+```bash
+curl -i -X PUT http://localhost:3000/api/projetos/1 \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Recusado"}'
+```
+
+```text
+HTTP/1.1 401 Unauthorized
+{"erro":"Faça login e envie o token para continuar"}
+```
+
+#### Token com assinatura alterada
+
+No teste de assinatura foi trocado o primeiro caractere do bloco de assinatura (o payload permaneceu intacto); `$TOKEN_ALTERADO` representa esse valor inválido.
+
+```bash
+curl -i -X POST http://localhost:3000/api/projetos \
+  -H "Authorization: Bearer $TOKEN_ALTERADO" \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Recusado"}'
+```
+
+```text
+HTTP/1.1 401 Unauthorized
+{"erro":"Seu token não é válido ou venceu. Entre novamente"}
+```
+
+#### POST de projeto com token
+
+```bash
+curl -i -X POST http://localhost:3000/api/projetos \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Teste Aula 24","ano":2026}'
+```
+
+```text
+HTTP/1.1 201 Created
+{"id":2}
+```
+
+#### Criação do rascunho usado na leitura protegida
+
+```bash
+curl -i -X POST http://localhost:3000/api/projetos \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Rascunho Aula 24","ano":2026,"status":"rascunho"}'
+```
+
+```text
+HTTP/1.1 201 Created
+{"id":3}
+```
+
+#### GET público sem token, com rascunho existente
+
+```bash
+curl -i -X GET http://localhost:3000/api/projetos
+```
+
+```text
+HTTP/1.1 200 OK
+[{"id":2,"nome":"Teste Aula 24","descricao":"","tecnologias":"","link_github":"","ano":2026,"status":"publicado"},{"id":1,"nome":"Fixture preservada","descricao":"Registro anterior aos pedidos HTTP","tecnologias":"","link_github":null,"ano":2026,"status":"publicado"}]
+```
+
+#### Parâmetro antigo não revela rascunhos
+
+```bash
+curl -i -X GET 'http://localhost:3000/api/projetos?todos=1'
+```
+
+```text
+HTTP/1.1 200 OK
+[{"id":2,"nome":"Teste Aula 24","descricao":"","tecnologias":"","link_github":"","ano":2026,"status":"publicado"},{"id":1,"nome":"Fixture preservada","descricao":"Registro anterior aos pedidos HTTP","tecnologias":"","link_github":null,"ano":2026,"status":"publicado"}]
+```
+
+#### GET de todos sem token
+
+```bash
+curl -i -X GET http://localhost:3000/api/projetos/todos
+```
+
+```text
+HTTP/1.1 401 Unauthorized
+{"erro":"Faça login e envie o token para continuar"}
+```
+
+#### GET de todos com token, incluindo rascunho
+
+```bash
+curl -i -X GET http://localhost:3000/api/projetos/todos \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```text
+HTTP/1.1 200 OK
+[{"id":3,"nome":"Rascunho Aula 24","descricao":"","tecnologias":"","link_github":"","ano":2026,"status":"rascunho"},{"id":2,"nome":"Teste Aula 24","descricao":"","tecnologias":"","link_github":"","ano":2026,"status":"publicado"},{"id":1,"nome":"Fixture preservada","descricao":"Registro anterior aos pedidos HTTP","tecnologias":"","link_github":null,"ano":2026,"status":"publicado"}]
+```
+
+#### GET do projeto por id, sem token
+
+```bash
+curl -i -X GET http://localhost:3000/api/projetos/2
+```
+
+```text
+HTTP/1.1 200 OK
+{"id":2,"nome":"Teste Aula 24","descricao":"","tecnologias":"","link_github":"","ano":2026}
+```
+
+#### PUT de projeto com token
+
+```bash
+curl -i -X PUT http://localhost:3000/api/projetos/2 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Teste Aula 24 editado","ano":2026}'
+```
+
+```text
+HTTP/1.1 200 OK
+{"mensagem":"Projeto atualizado"}
+```
+
+#### PUT com o mesmo token após reiniciar a API
+
+```bash
+curl -i -X PUT http://localhost:3000/api/projetos/2 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Teste Aula 24 editado","ano":2026}'
+```
+
+```text
+HTTP/1.1 200 OK
+{"mensagem":"Projeto atualizado"}
+```
+
+#### DELETE sem token
+
+```bash
+curl -i -X DELETE http://localhost:3000/api/projetos/2
+```
+
+```text
+HTTP/1.1 401 Unauthorized
+{"erro":"Faça login e envie o token para continuar"}
+```
+
+#### DELETE com token
+
+```bash
+curl -i -X DELETE http://localhost:3000/api/projetos/2 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```text
+HTTP/1.1 204 No Content
+(sem corpo)
+```
+
+#### DELETE de id já removido
+
+```bash
+curl -i -X DELETE http://localhost:3000/api/projetos/2 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```text
+HTTP/1.1 404 Not Found
+{"erro":"Projeto nao encontrado"}
+```
+
+#### Leitura pública do catálogo
+
+```bash
+curl -i -X GET http://localhost:3000/api/tecnologias
+```
+
+```text
+HTTP/1.1 200 OK
+[{"id":4,"nome":"PHP","categoria":"Backend","descricao":"Linguagem server-side para aplicacoes web.","ano_criacao":1995},{"id":5,"nome":"MariaDB","categoria":"Banco de Dados","descricao":"Sistema gerenciador de banco de dados relacional.","ano_criacao":2009},{"id":6,"nome":"Git","categoria":"DevOps","descricao":"Sistema de controle de versao distribuido.","ano_criacao":2005},{"id":2,"nome":"CSS","categoria":"Frontend","descricao":"Linguagem de estilos para apresentacao visual.","ano_criacao":1996},{"id":1,"nome":"HTML","categoria":"Frontend","descricao":"Linguagem de marcacao para estrutura de paginas.","ano_criacao":1993},{"id":3,"nome":"JavaScript","categoria":"Frontend","descricao":"Linguagem de programacao para o navegador.","ano_criacao":1995}]
+```
+
+#### Criação protegida no catálogo
+
+```bash
+curl -i -X POST http://localhost:3000/api/tecnologias \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Tecnologia Aula 24","categoria":"Teste","descricao":"Temporária","ano_criacao":2026}'
+```
+
+```text
+HTTP/1.1 201 Created
+{"id":7}
+```
+
+#### Atualização protegida no catálogo
+
+```bash
+curl -i -X PUT http://localhost:3000/api/tecnologias/7 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Tecnologia Aula 24 editada","categoria":"Teste","descricao":"Temporária","ano_criacao":2026}'
+```
+
+```text
+HTTP/1.1 200 OK
+{"mensagem":"Tecnologia atualizada"}
+```
+
+#### Exclusão protegida no catálogo
+
+```bash
+curl -i -X DELETE http://localhost:3000/api/tecnologias/7 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```text
+HTTP/1.1 204 No Content
+(sem corpo)
+```
+
+#### Banco indisponível: falha real no ambiente isolado
+
+Este pedido foi feito após parar somente o MariaDB descartável de teste; o banco foi reiniciado em seguida. O caminho no erro é o socket daquele ambiente. Não pare o banco do seu portfólio para repetir essa prova.
+
+```bash
+curl -i -X GET http://localhost:3000/api/projetos
+```
+
+```text
+HTTP/1.1 500 Internal Server Error
+{"erro":"Falha no servidor: connect ENOENT /workspace/work/aula24/db-run/mysqld.sock"}
+```
+
+### Verificação complementar e preservação dos dados
+
+Foram executadas **48 requisições HTTP** e **15 verificações adicionais** com asserções de resultado. A tabela resume os demais casos realmente observados:
+
+| Caso | Resultado obtido |
+| --- | --- |
+| Login sem corpo / campos de tipos inválidos | 400 em JSON |
+| E-mail com tentativa de SQL (`' OR 1=1 --`) | 401, sem autenticar |
+| POST, PUT e DELETE de projetos e catálogo sem token | 401 nas seis rotas; snapshot do banco inalterado |
+| Payload do JWT modificado / assinatura modificada / JWT expirado | 401 |
+| Credencial no esquema Basic em vez de Bearer | 401 |
+| POST e PUT sem nome em projetos e catálogo | 400 |
+| POST e PUT de projeto com status inválido | 400 |
+| GET público de rascunho ou id inexistente | 404 em JSON |
+| PUT e DELETE de id inexistente, projetos e catálogo | 404 em JSON |
+| PUT sem campo status em rascunho | 200; status rascunho preservado no banco |
+| Nome contendo SQL no POST de projeto | 201; texto armazenado literalmente, tabela preservada |
+| Preflight OPTIONS | 204 |
+| Cadastro duplicado do e-mail do dono | Recusado, código de saída 1; hash existente preservado |
+| SQL de usuários e setup reaplicados | Dados anteriores preservados |
+| Limpeza após os testes | Somente IDs criados no teste removidos; snapshot inicial restaurado |
+
+O script `criar-usuario.js` foi executado de verdade, e o hash foi consultado no banco, com 60 caracteres e prefixo bcrypt. Nenhuma senha ou JWT foi incluído nas evidências. A API recebeu as requisições por `curl`; as 15 verificações adicionais conferiram dados, hash, validade, reinício e preservação. A sintaxe dos três arquivos JavaScript da API passou em `node --check`. O Angular/PHP não foi alterado nem teve sua execução validada nesta revisão.
+
+Não há registro fabricado de um DELETE sem autenticação retornando 204 "antes": ele já estava protegido no commit inicial. As evidências desta revisão mostram 401 sem token, 204 com token e 404 ao repetir a exclusão. Os exercícios de previsões, respostas pessoais do caderno e avaliação no AVA continuam sendo da Luara.
+
+### O que esta API ainda não faz
+
+1. Não tem autorização por perfil/proprietário: qualquer usuário com JWT válido pode alterar os projetos e o catálogo. A tabela de usuários não equivale a uma regra de permissão por registro.
+2. Não revoga um token individual nem faz logout no servidor: sem sessão/denylist, ele continua válido até expirar, mesmo após reiniciar a API. Trocar o segredo invalida todos os tokens.
+
+### Critérios de avaliação e histórico real
+
+| Critério da Entrega A | Evidência nesta revisão | Limite para afirmar atendimento integral |
+| --- | --- | --- |
+| 1. Operações da API | Cinco operações de projetos e três escritas protegidas do catálogo, com status e SQL parametrizado: `api-node/server.js`, seções de projetos e catálogo; respostas acima | Evidências técnicas de C e B presentes |
+| 2. Tranca | `sql/usuarios.sql`, `api-node/criar-usuario.js`, único `autenticar`, login, 30 minutos, mensagens confirmadas e justificativa; leitura `/api/projetos/todos` protegida | Requisitos técnicos adicionais de A presentes; senha pessoal definitiva ainda deve ser criada pela Luara no Codespace |
+| 3. README e histórico | Execução do zero, curls reais, limites, explicação do segredo e tabela de rotas; dependências fora da árvore versionada atual | Não existem commits separados das Aulas 21, 22 e 23 no histórico recebido; nem todas as mensagens antigas seguem `Aula NN:` |
+
+A revisão implementa e testa os recursos técnicos até A, mas **não comprova A integral na rubrica**. O conceito final depende do menor dos três critérios e da avaliação do professor. Não é possível declarar integralmente C/B/A enquanto o requisito histórico do arco não estiver resolvido com o professor. A escolha pessoal de conceito esperado e a autoavaliação não foram preenchidas pela IA.
+
+O repositório recebido tinha 12 commits; o último era `44a7ce1`, que reuniu a API Node e já se identificava como Aula 24 (Parte 1). Não foram inventados commits das Aulas 21–23, retrodatados commits, alteradas mensagens antigas nem reescrito o histórico para parecer que a sequência existia. O complemento desta aula usa mensagem iniciada por `Aula 24:` e a identidade Git confirmada de Luara. Os arquivos `node_modules` continuam no histórico antigo, mas foram removidos da versão atual; eliminá-los do passado exigiria reescrita de histórico, que não foi feita.
+
+Repositório público: https://github.com/luara874/portfolio-angular . Nada foi enviado ao AVA nesta revisão. A Luara deve definir sua senha no Codespace, estudar os trechos acima e tratar a lacuna do histórico com o professor antes de declarar um conceito esperado.
+
+Uso de IA: ChatGPT/Codex auxiliou na leitura dos materiais, comparação com o código, complemento da tabela de usuários e rotas da Aula 24, execução dos testes e redação das instruções e evidências deste README, para revisão e estudo pela Luara.
