@@ -1,15 +1,20 @@
-// As props são somente leitura; o App entrega os cinco campos num objeto.
+// As props são somente leitura; o App entrega os campos num objeto.
 function CardProjeto({ projeto }) {
   return (
     <article className="card">
-      <h3>{projeto.nome}</h3>
-      <p className="meta">{projeto.tecnologias} · {projeto.ano}</p>
-      <p>{projeto.descricao}</p>
-      {projeto.link_github && (
-        <a href={projeto.link_github} target="_blank" rel="noopener noreferrer">
-          Ver no GitHub
-        </a>
-      )}
+      <div className="card-titulo">
+        <h3>{projeto.nome}</h3>
+        <span className="card-ano">{projeto.ano}</span>
+      </div>
+      <p className="card-descricao">{projeto.descricao}</p>
+      <div className="card-detalhes">
+        <p className="meta">{projeto.tecnologias}</p>
+        {projeto.link_github && (
+          <a href={projeto.link_github} target="_blank" rel="noopener noreferrer">
+            Ver no GitHub <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12 12 4M4 4h8v8" /></svg>
+          </a>
+        )}
+      </div>
     </article>
   );
 }

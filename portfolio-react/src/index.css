@@ -1,182 +1,183 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  font-family: Arial, 'Helvetica Neue', sans-serif;
+  color: #23212a;
+  background: #f1f0f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --fundo: #f1f0f5;
+  --papel: #fff;
+  --texto: #23212a;
+  --suave: #625b70;
+  --linha: #d3cede;
+  --roxo: #6c37b1;
+  --roxo-hover: #502286;
+  --roxo-claro: #e4dcf0;
+  --botao-texto: #fff;
+  --sucesso: #205735;
+  --sucesso-fundo: #e6f2e9;
+  --painel: #e5e1ed;
+  --barra: #211d2b;
+  --barra-texto: #eee9f6;
+  --mono: 'Courier New', Courier, monospace;
+  color-scheme: light;
 }
-
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
+    color: #f2edf9;
+    background: #19161f;
+    --fundo: #19161f;
+    --papel: #26212e;
+    --texto: #f2edf9;
+    --suave: #c3b9d1;
+    --linha: #51465f;
+    --roxo: #c5a3f1;
+    --roxo-hover: #e0c6ff;
+    --roxo-claro: #3c2c50;
+    --botao-texto: #251832;
+    --sucesso: #b2e1be;
+    --sucesso-fundo: #233b2d;
+    --painel: #302838;
+    --barra: #100d17;
+    --barra-texto: #eee9f6;
+    color-scheme: dark;
   }
 }
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: 32px; }
+body { margin: 0; font-size: 16px; line-height: 1.55; }
+#root { min-height: 100vh; display: grid; grid-template-columns: 208px minmax(0, 1fr); grid-template-rows: 1fr auto; }
+main { grid-column: 2; width: min(1160px, calc(100% - 88px)); margin: 0 auto; min-width: 0; }
+section, aside { scroll-margin-top: 24px; }
+h1, h2, h3, p { margin: 0; }
+a { color: var(--roxo); text-underline-offset: 4px; }
+a, button, input, textarea, .card { transition: background-color 140ms, color 140ms, border-color 140ms; }
+:focus-visible { outline: 3px solid var(--roxo); outline-offset: 5px; }
+main:focus { outline: none; }
+.pular-conteudo { position: fixed; top: 12px; left: 12px; z-index: 20; transform: translateY(-180%); padding: 14px 18px; border-radius: 8px; background: var(--papel); }
+.pular-conteudo:focus { transform: none; }
 
-*, *::before, *::after {
-  box-sizing: border-box;
+/* Navegação ocupa uma faixa lateral própria em telas grandes. */
+.cabecalho { position: fixed; inset: 0 auto 0 0; width: 208px; background: var(--barra); color: var(--barra-texto); z-index: 10; }
+.cabecalho-interno { height: 100%; padding: 44px 24px; display: flex; flex-direction: column; align-items: stretch; gap: 84px; }
+.marca { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; color: var(--barra-texto); text-decoration: none; font-size: 23px; font-weight: 750; line-height: 1; }
+.marca-sigla { width: 52px; height: 52px; display: grid; place-items: center; border: 1px solid #8a739f; border-radius: 50%; color: #e0c5ff; font: 700 18px/1 var(--mono); }
+.marca-legenda { display: block; margin-top: 10px; font: 11px/1.3 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: #c5b9d4; }
+nav { display: flex; flex-direction: column; gap: 12px; }
+nav a { padding: 12px 14px; color: var(--barra-texto); border-radius: 8px; font-size: 14px; text-decoration: none; font-weight: 600; }
+nav a:hover, nav a:focus-visible { background: #443153; color: #fff; }
+.cabecalho :focus-visible { outline-color: #d4b0ff; }
+
+.sobretitulo { color: var(--roxo); font: 700 11px/1.6 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
+.apresentacao { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(220px, 0.8fr); align-items: end; gap: 44px; padding: 64px 0 52px; }
+h1 { margin: 26px 0 22px; font-size: clamp(42px, 4.9vw, 78px); line-height: 0.98; letter-spacing: -0.065em; font-weight: 800; text-transform: uppercase; }
+h1 span { display: block; }
+.nome-destaque { color: var(--roxo); }
+.introducao { max-width: 390px; color: var(--suave); font-size: 16px; line-height: 1.6; }
+.link-destaque { margin-top: 24px; display: inline-flex; align-items: center; gap: 18px; font-size: 13px; font-weight: 700; text-decoration: none; border-bottom: 2px solid var(--roxo); padding-bottom: 8px; }
+.link-destaque:hover { color: var(--roxo-hover); }
+.sobre { padding: 28px; border-radius: 24px 24px 4px 24px; background: var(--roxo); color: var(--botao-texto); }
+.sobre .sobretitulo { color: inherit; }
+.sobre h2 { margin: 28px 0 12px; font-size: 25px; font-weight: 650; line-height: 1.18; letter-spacing: -0.035em; }
+.sobre > p:not(.sobretitulo) { font: 14px/1.5 var(--mono); }
+.sobre-habilidades { margin-top: 36px; }
+.sobre-habilidades h3 { margin-bottom: 8px; font: 700 11px/1.5 var(--mono); text-transform: uppercase; }
+.sobre-habilidades p { font-size: 13px; line-height: 1.7; }
+
+.projetos { padding: 32px 0 56px; }
+.cabecalho-secao { margin-bottom: 22px; display: flex; justify-content: space-between; align-items: end; gap: 18px; }
+.cabecalho-secao h2, .contato h2 { margin-top: 8px; font-size: 36px; line-height: 1.1; letter-spacing: -0.055em; font-weight: 750; }
+.total-projetos { color: var(--suave); border: 1px solid var(--linha); padding: 6px 10px; border-radius: 20px; font: 12px/1.4 var(--mono); white-space: nowrap; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.card { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid transparent; border-radius: 18px; background: var(--papel); overflow-wrap: anywhere; }
+.card:hover { border-color: var(--roxo); }
+.card-titulo { display: flex; justify-content: space-between; align-items: start; gap: 14px; }
+.card h3 { max-width: 16ch; font-size: 24px; line-height: 1.16; font-weight: 700; letter-spacing: -0.045em; }
+.card-ano { color: var(--suave); font: 11px/1.5 var(--mono); background: var(--fundo); padding: 4px 8px; border-radius: 6px; flex-shrink: 0; }
+.card-descricao { margin: 22px 0 28px; font-size: 14px; color: var(--suave); line-height: 1.7; }
+.card-detalhes { margin-top: auto; }
+.meta { display: inline-block; padding: 7px 10px; background: var(--fundo); border-radius: 6px; color: var(--suave); font: 11px/1.5 var(--mono); }
+.card a { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--linha); font-size: 12px; font-weight: 700; text-decoration: none; }
+.card a:hover { color: var(--roxo-hover); text-decoration: underline; }
+
+/* Contato vira um painel único, com formulário aberto e campos confortáveis. */
+.contato { padding: 36px; margin: 4px 0 48px; border-radius: 24px; background: var(--painel); }
+.contato-intro { display: grid; grid-template-columns: 1fr 1fr; column-gap: 44px; margin-bottom: 30px; }
+.contato-intro .sobretitulo { grid-column: 1; }
+.contato h2 { grid-column: 1; margin-top: 8px; font-size: 44px; }
+.contato-intro > p:not(.sobretitulo) { grid-column: 2; color: var(--suave); font-size: 14px; max-width: 360px; }
+.contato-intro > p:not(.sobretitulo):not(.nota-local) { grid-row: 1 / 3; align-self: end; }
+.contato-intro .nota-local { grid-column: 1 / -1 !important; max-width: none !important; margin-top: 20px; font: 11px/1.6 var(--mono); }
+.formulario-painel { min-width: 0; }
+.formulario-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.campo { min-width: 0; margin-bottom: 20px; }
+label { display: block; margin-bottom: 9px; font: 700 11px/1.6 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
+input, textarea { display: block; width: 100%; padding: 15px 16px; border: 1px solid transparent; border-radius: 10px; background: var(--papel); color: var(--texto); font: inherit; font-size: 16px; line-height: 1.5; }
+textarea { min-height: 150px; resize: vertical; }
+input:hover, textarea:hover { border-color: var(--suave); }
+input:focus, textarea:focus { border-color: var(--roxo); }
+.contador { margin-top: -5px; color: var(--suave); font: 11px/1.7 var(--mono); overflow-wrap: anywhere; }
+button { display: flex; justify-content: space-between; align-items: center; gap: 48px; min-height: 48px; margin-top: 22px; padding: 14px 24px; border: 0; border-radius: 999px; background: var(--texto); color: var(--papel); font: 600 13px/1.5 Arial, sans-serif; cursor: pointer; }
+button:hover:not(:disabled) { background: var(--roxo); color: var(--botao-texto); }
+button:disabled { background: var(--roxo-claro); color: var(--suave); cursor: not-allowed; }
+.aviso:not(:empty) { margin-top: 24px; padding: 18px; background: var(--sucesso-fundo); color: var(--sucesso); border-radius: 10px; font-size: 13px; overflow-wrap: anywhere; }
+footer { grid-column: 2; width: min(1160px, calc(100% - 88px)); margin: 0 auto; padding: 0 0 32px; color: var(--suave); }
+footer p { font: 11px/1.8 var(--mono); }
+
+@media (max-width: 1100px) {
+  #root { grid-template-columns: 176px minmax(0, 1fr); }
+  .cabecalho { width: 176px; }
+  .cabecalho-interno { padding: 36px 20px; }
+  main, footer { width: calc(100% - 56px); }
+  .apresentacao { grid-template-columns: 1fr; gap: 32px; padding-top: 44px; }
+  h1 { font-size: clamp(48px, 7.2vw, 72px); }
+  .sobre { max-width: none; border-radius: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+  .sobre h2 { margin: 0; grid-column: 1; }
+  .sobre > p:not(.sobretitulo) { grid-column: 1; }
+  .sobre-habilidades { margin: 0; grid-column: 2; grid-row: 1 / 4; align-self: center; }
+  .card { padding: 20px; }
+  .card-titulo { flex-direction: column-reverse; gap: 14px; }
+  .card h3 { font-size: 23px; }
 }
-
-body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@media (max-width: 700px) {
+  html { scroll-padding-top: 20px; }
+  #root { display: flex; flex-direction: column; }
+  main { flex: 1; }
+  main, footer { width: calc(100% - 36px); }
+  .cabecalho { position: relative; width: 100%; }
+  .cabecalho-interno { padding: 20px 18px 12px; gap: 22px; }
+  .marca { flex-direction: row; align-items: center; gap: 12px; font-size: 19px; }
+  .marca-sigla { width: 42px; height: 42px; font-size: 15px; }
+  .marca-legenda { margin-top: 6px; font-size: 10px; }
+  nav { flex-direction: row; gap: 6px; justify-content: space-between; }
+  nav a { padding: 10px 8px; font-size: 12px; }
+  .apresentacao { padding: 34px 0; gap: 28px; }
+  h1 { font-size: clamp(42px, 11vw, 68px); margin: 20px 0; }
+  .introducao { font-size: 15px; max-width: 320px; }
+  .link-destaque { margin-top: 20px; font-size: 12px; }
+  .sobre { padding: 22px; display: block; }
+  .sobre h2 { font-size: 24px; margin: 18px 0 10px; }
+  .sobre-habilidades { margin-top: 24px; }
+  .sobre-habilidades p { max-width: 320px; }
+  .projetos { padding: 22px 0 32px; }
+  .cabecalho-secao { align-items: center; gap: 10px; }
+  .cabecalho-secao h2 { font-size: 32px; }
+  .cabecalho-secao .sobretitulo { max-width: 165px; font-size: 10px; }
+  .total-projetos { font-size: 10px; padding: 5px 8px; }
+  .cards { grid-template-columns: 1fr; gap: 12px; }
+  .card { padding: 24px; }
+  .card-titulo { flex-direction: row; }
+  .card h3 { font-size: 24px; }
+  .card-descricao { margin: 18px 0 24px; }
+  .contato { margin-bottom: 30px; padding: 24px 18px; border-radius: 18px; }
+  .contato-intro { display: block; margin-bottom: 24px; }
+  .contato h2 { font-size: 38px; margin: 10px 0 18px; }
+  .contato-intro .nota-local { margin-top: 16px; }
+  .formulario-linha { grid-template-columns: 1fr; gap: 0; }
+  input, textarea { padding: 14px; }
+  button { width: 100%; }
+  footer { padding-bottom: 24px; }
 }
-
-#root {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
 }
-
-/* Estilização do Cabeçalho React */
-header {
-  background-color: var(--accent);
-  color: white;
-  padding: 1.2rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-header h1 {
-  font-size: 1.5rem;
-  margin: 0;
-  color: white;
-}
-
-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  transition: opacity 0.2s;
-}
-
-nav a:hover {
-  opacity: 0.8;
-  text-decoration: underline;
-}
-
-/* Conteúdo principal */
-main {
-  max-width: 900px;
-  width: 100%;
-  margin: 3rem auto;
-  padding: 0 1.5rem;
-  text-align: center;
-}
-
-h1, h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-p {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-/* Aula 25: os cards e o rodapé usam a paleta roxa que já existia. */
-main { flex: 1; }
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-  gap: 1.25rem;
-  text-align: left;
-}
-
-.card {
-  min-width: 0;
-  padding: 1.25rem;
-  border: 1px solid var(--border);
-  border-top: 4px solid var(--accent);
-  border-radius: 12px;
-  background: var(--bg);
-  overflow-wrap: anywhere;
-}
-
-.card h3 {
-  margin: 0 0 0.5rem;
-  color: var(--text-h);
-  font-family: var(--heading);
-}
-
-.card .meta {
-  margin-bottom: 0.75rem;
-  font-size: 0.85rem;
-}
-
-.card p { font-size: 1rem; }
-.card a {
-  display: inline-block;
-  margin-top: 1rem;
-  color: var(--accent);
-  font-weight: 600;
-}
-
-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border);
-  background: var(--accent-bg);
-  text-align: center;
-}
-
-footer p { font-size: 0.85rem; }
-a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
-
-@media (max-width: 600px) {
-  header { padding: 1.25rem; }
-  header h1 { font-size: 1.25rem; }
-  nav a { padding: 0.25rem 0; }
-  main { margin: 1.5rem auto; padding: 0 1rem; }
-}
-
-/* Aula 26: apresentação mínima do formulário, antes da melhoria visual. */
-.total-projetos { margin-bottom: 1rem; }
-.contato { margin-top: 2rem; text-align: left; }
-.contato label { display: block; margin-top: 1rem; font-weight: 600; }
-.contato input, .contato textarea {
-  display: block; width: 100%; margin: 0.4rem 0 1rem; padding: 0.75rem;
-  color: var(--text-h); background: var(--bg); border: 1px solid var(--border);
-  border-radius: 6px; font: inherit;
-}
-.contato textarea { resize: vertical; }
-.contato button { margin-top: 1rem; padding: 0.75rem 1.5rem; border: 0; border-radius: 6px; background: var(--accent); color: white; font: inherit; cursor: pointer; }
-.contato button:disabled { opacity: 0.5; cursor: not-allowed; }
-.contato :is(input, textarea, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.aviso { margin-top: 1rem; color: #2e7d32; font-weight: 600; }
