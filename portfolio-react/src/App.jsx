@@ -2,9 +2,50 @@ import Cabecalho from './Cabecalho.jsx';
 import CardProjeto from './CardProjeto.jsx';
 import Contato from './Contato.jsx';
 import Rodape from './Rodape.jsx';
-import projetos from './projetos.js';
+import { useEffect, useState } from 'react';
+import API from './api.js';
+import Catalogo from './Catalogo.jsx';
+
+// Busca somente os dados; o componente controla a apresentação de cada pedido.
+async function buscarProjetos(signal) {
+  const resposta = await fetch(API + '/api/projetos', { signal });
+  if (!resposta.ok) throw new Error('a API respondeu ' + resposta.status);
+  const dados = await resposta.json();
+  if (!Array.isArray(dados)) throw new Error('a API não retornou uma lista válida');
+  return dados;
+}
+
+function mensagemDeErro(falha) {
+  return 'Não deu para carregar os projetos: ' + (falha instanceof TypeError ? 'não foi possível conectar à API.' : falha.message);
+}
 
 function App() {
+  const [projetos, setProjetos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
+
+  async function atualizarProjetos() {
+    setCarregando(true);
+    setErro('');
+    setProjetos([]);
+    try {
+      setProjetos(await buscarProjetos());
+    } catch (falha) {
+      setErro(mensagemDeErro(falha));
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  useEffect(() => {
+    const controller = new AbortController();
+    buscarProjetos(controller.signal)
+      .then((dados) => { if (!controller.signal.aborted) setProjetos(dados); })
+      .catch((falha) => { if (!controller.signal.aborted) setErro(mensagemDeErro(falha)); })
+      .finally(() => { if (!controller.signal.aborted) setCarregando(false); });
+    return () => controller.abort();
+  }, []);
+
   return (
     <>
       <Cabecalho />
@@ -33,14 +74,21 @@ function App() {
               <p className="sobretitulo">Desenvolvimento na prática</p>
               <h2 id="titulo-projetos">Projetos</h2>
             </div>
-            <p className="total-projetos">{projetos.length} projetos</p>
+            <div className="acoes-projetos">
+              {!carregando && !erro && <p className="total-projetos">{projetos.length} {projetos.length === 1 ? 'projeto' : 'projetos'}</p>}
+              <button className="atualizar" type="button" onClick={atualizarProjetos} disabled={carregando}>Atualizar</button>
+            </div>
           </div>
-          <div className="cards">
+          {carregando && <p className="estado" role="status">Carregando projetos...</p>}
+          {erro && <p className="erro estado" role="alert">{erro}</p>}
+          {!carregando && !erro && projetos.length === 0 && <p className="estado vazio">Nenhum projeto publicado ainda</p>}
+          <div className="cards" aria-busy={carregando}>
             {projetos.map((p) => (
               <CardProjeto key={p.id} projeto={p} />
             ))}
           </div>
         </section>
+        <Catalogo />
         <Contato />
       </main>
       <Rodape />

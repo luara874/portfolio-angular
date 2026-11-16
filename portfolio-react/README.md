@@ -1,32 +1,39 @@
-# Portfólio React da Luara — Aulas 25 e 26
+# Portfólio React da Luara — Aula 27
 
-Projeto Vite + React aproveitado do Codespace da Luara. O roxo continua como destaque, combinado com neutros em modos claro/escuro. A composição atual usa faixa lateral no desktop, tipografia sem serifa e painel de contato. A Aula 26 mostra quatro projetos locais com map/key e um formulário controlado, sem consultar a API.
+O front usa a API Node da Luara para projetos e tecnologias, com fetch em efeitos, carregamento, erro, lista vazia e Atualizar. O formulário de contato continua uma demonstração local da Aula 26: não envia nem armazena dados.
+
+Na raiz do repositório, em um terminal:
+
+```bash
+sudo service mariadb start
+cd PortfolioAngular/api-node
+npm ci
+node server.js
+```
+
+Não recrie o banco nem rode setup.sql para iniciar esta aula. A configuração existente deve ser preservada. No Codespace, mantenha a porta 3000 pública e confirme sua URL em `src/api.js`.
+
+Em outro terminal, a partir da raiz:
 
 ```bash
 cd portfolio-react
-npm install
-npm run dev
+npm ci
+npm run dev -- --host 0.0.0.0 --port 5174 --strictPort
 ```
 
-Acesse a porta 5173. No Codespace, pode usar `npm run dev -- --host 0.0.0.0 --port 5173 --strictPort` e abrir a porta pela aba PORTS.
+Abra a 5174 em PORTS. Se já estiver em uso, pare só o Vite antigo ou escolha outra porta. Na pasta React:
 
 ```bash
 npm run build
 npm run lint
 ```
 
-- `App.jsx`: monta o cabeçalho, a lista de cards, o contato e o rodapé com um fragment.
-- `Cabecalho.jsx`: identificação da Luara, quatro links para seções da própria página e atalho de teclado para o conteúdo; não há Router.
-- `CardProjeto.jsx`: recebe o objeto `projeto` com nome, descrição, tecnologias, link e ano. Exibe o link somente quando fornecido.
-- `Rodape.jsx`: identificação da Luara, IFPR e ano.
-- `projetos.js`: lista local com IDs estáveis; `map` usa `key={p.id}` e o total é `projetos.length`.
-- `Contato.jsx`: estados de nome, e-mail, mensagem e aviso, caixas com value/onChange, contador e envio local com preventDefault e limpeza. Não envia e-mail nem grava dados.
-- `index.css`: novo layout responsivo, menu lateral/topo, cards, painel de contato, hover/foco e modo escuro.
+- `api.js`: URL central da porta 3000, confirmada pela usuária.
+- `App.jsx`: estados de projetos/carregamento/erro; efeito inicial, map com key pelo id e Atualizar por evento.
+- `Catalogo.jsx`: GET de tecnologias e estados próprios, com lista ul/li e key pelo id.
+- `CardProjeto.jsx`: recebe o objeto retornado pela API. Não há lista fixa de reserva nem projetos.js.
+- `Contato.jsx`: campos controlados, contador, aviso e limpeza dos três campos, sem POST.
 
-Os dados vieram da consulta ao banco enviada pela usuária. Os links `github.com/usuario/...` dos três registros iniciais eram exemplos e ficaram como `null` até a confirmação de URLs reais. O quarto card aponta para a API Node real deste repositório. Nenhum registro do banco foi alterado.
+`resposta.ok` é verificado antes de JSON. O fim do carregamento é tratado também quando há falha. Os dados exibidos são os retornados pela API, incluindo a quantidade e os links cadastrados; endereços de exemplo no banco precisam ser confirmados pela Luara.
 
-No JSX, `className` é a propriedade usada para a classe CSS; `class` é palavra reservada do JavaScript. `{projeto.nome}` avalia um valor; `{{nome}}` tenta renderizar um objeto, e uma prop com nome diferente não fornece o campo esperado pelo componente.
-
-Veja as evidências, os critérios e as instruções para preservar as alterações antigas do Codespace no README da raiz, seções Aulas 25 e 26.
-
-Uso de IA: ChatGPT/Codex auxiliou na revisão dos materiais, no complemento dos componentes, da lista e do formulário controlado, redesenho de CSS/JSX e documentação e na verificação com build, lint e navegador, para estudo pela Luara.
+Veja no README principal, seção Aula 27, os testes reais, as simulações e a limitação de certificado do Chromium desta máquina. Os testes com dados reais por retransmissor de curl não equivalem a aprovar o caminho HTTPS direto do navegador. A nota única sobre uso de IA está no README principal.

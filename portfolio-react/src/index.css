@@ -181,3 +181,19 @@ footer p { font: 11px/1.8 var(--mono); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
 }
+
+/* Aula 27: estados de dados remotos, antes do redesenho separado. */
+.acoes-projetos { display: flex; align-items: center; gap: 14px; }
+.atualizar { margin: 0; padding: 10px 16px; min-height: 44px; }
+.estado { margin: 18px 0; padding: 16px; border: 1px solid var(--linha); border-radius: 8px; overflow-wrap: anywhere; }
+.erro { color: #a51d33; border-color: currentColor; }
+.catalogo { padding: 28px 0 48px; }
+.catalogo h2 { font-size: 30px; letter-spacing: -0.04em; }
+.tecnologias { padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tecnologias li { display: flex; flex-direction: column; padding: 18px; background: var(--papel); border-radius: 12px; min-width: 0; overflow-wrap: anywhere; }
+.tecnologias li span { color: var(--suave); font-size: 13px; }
+@media (max-width: 600px) {
+  .acoes-projetos { flex-direction: column; align-items: flex-end; gap: 8px; }
+  .tecnologias { grid-template-columns: 1fr; }
+}
+@media (prefers-color-scheme: dark) { .erro { color: #ffabb7; } }

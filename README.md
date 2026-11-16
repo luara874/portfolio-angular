@@ -929,4 +929,77 @@ Na verificação visual foram conferidos os quatro destinos de navegação, link
 
 A implementação funcional ficou no commit `316d69f` (lista e formulário); o redesenho fica num segundo commit da Aula 26. As duas alterações se limitam ao React e aos READMEs. Não houve mudança em dependências, banco, SQL, API ou Angular. As instruções de execução e conferência da seção acima valem para a versão final.
 
-Uso de IA: ChatGPT/Codex auxiliou na leitura dos materiais, comparação com o código, complemento da tabela de usuários e rotas da Aula 24 e dos componentes/CSS da Aula 25, reorganização de pastas solicitada pela usuária e execução dos testes HTTP e de navegador e implementação da lista/formulário e redesenho visual da Aula 26, além da redação das instruções e evidências deste README, para revisão e estudo pela Luara.
+## Aula 27: projetos e catálogo vindos da API
+
+### Implementação e preservação
+
+A etapa partiu da `main` limpa em `8358250`, igual ao remoto, com a Aula 26 concluída. Os cinco PDFs da Aula 27 foram lidos. A estrutura continua `PortfolioAngular/` + `portfolio-react/` + README. Só React e documentação foram alterados. Não foi executado `setup.sql`, não foram modificados registros do banco da Luara, rotas, autenticação, Angular ou dependências. Mudanças não publicadas no Codespace não são acessíveis diretamente por esta máquina; as capturas mais recentes mostravam o pull concluído, e não houve novo pacote de alterações locais nesta etapa.
+
+- `src/api.js` centraliza a URL real da porta 3000, confirmada pela usuária: `https://ubiquitous-giggle-pjvxx4xv4x653rw6v-3000.app.github.dev`, sem barra final. Não é um endereço do Henry.
+- `App.jsx` inicia `projetos` como `[]`, `carregando` como true e `erro` como texto vazio. A função `buscarProjetos` contém `fetch`, confere `resposta.ok` **antes** de `resposta.json()` e valida que o resultado é uma lista. O efeito com `[]` chama essa função; o componente só desenha o resultado via map, `key={p.id}` e `CardProjeto` reutilizável.
+- Na busca inicial, a resposta atualiza o estado de forma assíncrona. A limpeza do efeito aborta o pedido anterior e ignora respostas canceladas no StrictMode; uma requisição cancelada não aparece como falha de conteúdo. Não foi removido o StrictMode.
+- O botão **Atualizar** chama a mesma busca por um evento, sem outro efeito. Ele limpa o erro e dados anteriores, mostra carregamento e fica desabilitado enquanto aguarda. O término usa finally, em sucesso e em falha. Há mensagens separadas para carregando, erro e **Nenhum projeto publicado ainda**, sem lista fixa de reserva.
+- `Catalogo.jsx` tem seus próprios estados e efeito com `[]`, busca `GET /api/tecnologias` e mostra nome e categoria em `<ul>`/`<li key={t.id}>`. Também trata carregamento, erro HTTP, falha de conexão, JSON inválido, resposta fora do contrato e lista vazia, sem misturar os estados com os projetos.
+- `src/projetos.js` foi removido. O total exibido é o tamanho da resposta da API; não há limite para fazê-lo coincidir com os quatro cards da aula anterior. O formulário da Aula 26 permanece controlado, com contador, preventDefault, aviso local e limpeza dos três campos. Não passou a enviar e-mail nem gravar contatos.
+
+O checkpoint desta aula não atribui conceito C/B/A e não tem entrega ao AVA. Foram implementados os três extras: estados no catálogo, Atualizar e lista vazia. Router, login no React e gestão ficam para a Aula 28. Respostas pessoais do caderno e autoavaliação não foram inventadas.
+
+### Executar banco, API e React no Codespace
+
+Antes de atualizar, na raiz do repositório, confira `git status --short`. Com a árvore limpa, use `git pull --ff-only origin main`. Se houver mudanças locais ou um stash antigo, preserve e concilie os arquivos antes de aplicá-los sobre os caminhos reorganizados; o roteiro de worktree da Aula 25 também permite uma cópia separada sem sobrescrever a original.
+
+Em um terminal, com o banco já configurado das aulas anteriores:
+
+```bash
+cd /workspaces/portfolio-angular
+sudo service mariadb start
+cd PortfolioAngular/api-node
+npm ci
+node server.js
+```
+
+Não repita `setup.sql` sobre o banco existente. Mantenha o terminal da API aberto. Na aba PORTS, confirme a porta **3000**, visibilidade **Public** e o endereço encaminhado igual ao `src/api.js`. Se recriar o Codespace e a URL mudar, atualize só esse arquivo. Se o usuário do banco/socket for diferente da configuração existente, concilie a conexão; não recrie ou apague dados.
+
+No terminal livre, confira leituras sem autenticação:
+
+```bash
+curl -i http://localhost:3000/api/projetos
+curl -i http://localhost:3000/api/tecnologias
+```
+
+Em outro terminal, execute o React:
+
+```bash
+cd /workspaces/portfolio-angular/portfolio-react
+npm ci
+npm run dev -- --host 0.0.0.0 --port 5174 --strictPort
+```
+
+Abra o globo da porta **5174** em PORTS. A 5173 também serve, se estiver disponível. Se uma porta já estiver em uso, pare apenas o Vite antigo correspondente ou escolha outra; a URL da API continua sendo a da 3000. Para verificar o front:
+
+```bash
+npm run build
+npm run lint
+```
+
+### Como funciona e como conferir
+
+`useEffect` agenda a busca depois do desenho inicial; a lista `[]` evita repetir a busca a cada alteração do formulário. `fetch` espera a resposta HTTP; `resposta.ok` indica status 200–299 e precisa ser conferido antes da leitura do corpo, pois 404/500 não fazem o fetch rejeitar sozinho. Depois, `resposta.json()` espera e converte o corpo. Os estados guardam o dado, o carregamento e o erro para a tela mostrar o momento correto. `finally` encerra o carregamento mesmo se a resposta falhar. CORS é conferido pelo navegador, não pelo curl.
+
+Com a API acessível, compare os cards e tecnologias com as respostas acima. Clique em Atualizar: só os projetos são buscados de novo, sem recarga e sem perder o texto já digitado no contato. Uma API que retorna `[]` deve mostrar a mensagem de lista vazia. Para testar rede lenta, erros ou indisponibilidade, use simulação do navegador ou uma instância isolada; não interrompa a API compartilhada nem altere os registros reais para fabricar esses cenários.
+
+### Evidências e limite de rede desta máquina — 16/11/2026
+
+**API real da Luara, somente leitura:** curl com validação TLS recebeu 200 em `/api/projetos`, com **5 projetos publicados**, e 200 em `/api/tecnologias`, com **6 tecnologias**. O cabeçalho CORS foi confirmado. Os títulos vieram do banco (API de Clima, Portfolio Pessoal, App de Tarefas, Sistema de Biblioteca e Loja Virtual), sem acrescentar ou remover registros. Os links `github.com/usuario/...` constam na resposta real: são dados pendentes de correção/confirmação pela Luara, não links criados nesta atividade.
+
+**Limitação do navegador direto:** o Chromium desta máquina recusou o certificado do endereço encaminhado com `ERR_CERT_AUTHORITY_INVALID`. A tela exibiu erro de conexão e encerrou o carregamento. Não foi desligada a validação TLS. Portanto, **não foi aprovado o fluxo direto navegador → HTTPS do Codespace nesta máquina**.
+
+**Renderização com dados reais por retransmissor de teste:** Playwright interceptou somente os dois GETs e fez curl validar TLS e buscar a resposta real a cada pedido, retransmitindo o JSON e o CORS para o navegador. Em 1440, 390 e 320 px, os cinco títulos e seis tecnologias corresponderam à API, Atualizar fez outra leitura, não houve rolagem horizontal nem avisos/exceções de console nesse modo. Isso confirma o front com dados realmente obtidos da API, mas não substitui a validação do acesso direto no navegador pessoal. O retransmissor só existe nos scripts de teste fora do repositório; não é proxy de produção nem fallback da aplicação.
+
+**Cenários simulados identificados:** respostas demoradas mostraram ambos os carregamentos e botão desabilitado; listas vazias mostraram as mensagens corretas; 404 com HTML mostrou o status 404, em vez de tentar ler HTML como JSON; 500 mostrou o status; conexão recusada, JSON inválido e objeto em vez de lista foram tratados. Após um 404 simulado, Atualizar recuperou os projetos enquanto o catálogo continuou com seu erro independente. Os pedidos estabilizaram, sem loop de efeito. Nenhuma API compartilhada foi parada para simular falhas.
+
+Nos testes simulados de sucesso em 1440/390/320 px, foram conferidos contador, Tab/Enter, aviso, limpeza de nome/e-mail/mensagem, ausência de POST e recarga, e preservação do conteúdo digitado ao atualizar projetos. Build Vite 8.3.5 e lint Oxlint passaram. Nenhum teste dependeu de limite artificial de projetos ou de nova execução de `setup.sql`.
+
+A implementação funcional será registrada separadamente do redesenho solicitado. Não há declaração de IA no conteúdo visual do site.
+
+Uso de IA: ChatGPT/Codex auxiliou na implementação, documentação e testes deste projeto.
