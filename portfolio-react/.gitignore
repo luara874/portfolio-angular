@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Configurações locais não entram no Git.
+.env
+.env.*
+!.env.example

@@ -9,22 +9,27 @@ Versões do projeto: npm 11.9.0, Angular CLI 21.2.13, Node 24 recomendado, PHP 8
 
 ## Estrutura
 
-```
+```text
 .
-├── api-node/             # API Node/Express: projetos, catálogo, login e JWT
-│   ├── server.js
-│   ├── db.js
-│   └── criar-usuario.js
-├── api/                  # API PHP preservada das aulas anteriores
-│   ├── projetos.php      # consulta e CRUD dos projetos
-│   ├── tecnologias.php   # catálogo de tecnologias ativas
-│   └── contato.php       # recebe mensagens do formulário de contato
-├── conexao.php           # conexão PDO com o MariaDB
-├── sql/
-│   ├── setup.sql         # cria o banco, as tabelas e os dados-base
-│   └── usuarios.sql      # acrescenta os usuários com hash, sem apagar dados
-├── portfolio-angular/    # aplicação Angular preservada
-└── portfolio-react/      # front React da Aula 25 (Vite, porta 5173)
+├── PortfolioAngular/
+│   ├── api-node/         # API Node/Express (porta 3000)
+│   ├── api/              # API PHP (porta 8000)
+│   ├── sql/              # setup.sql e usuarios.sql
+│   ├── conexao.php        # PDO/MariaDB
+│   ├── src/              # Angular
+│   ├── public/
+│   ├── .vscode/
+│   ├── .gitignore
+│   ├── angular.json
+│   ├── package.json / package-lock.json
+│   └── tsconfig*.json
+├── portfolio-react/      # React/Vite (porta 5173)
+│   ├── src/
+│   ├── public/
+│   ├── .gitignore / .oxlintrc.json
+│   ├── package.json / package-lock.json
+│   └── vite.config.js
+└── README.md
 ```
 
 A API avaliada na Aula 24 é a **Node**, na porta **3000**: veja [Aula 24](#aula-24-a-tranca-da-api-em-node) para subir do zero e conferir as respostas reais. O Angular e a API PHP continuam preservados; a constante `API_URL` do Angular ainda aponta para a API PHP (porta 8000). Mudar somente a porta não basta para migrá-lo, porque os caminhos e contratos PHP/Node são diferentes. Login no front não é cobrado nesta aula.
@@ -42,16 +47,16 @@ A API avaliada na Aula 24 é a **Node**, na porta **3000**: veja [Aula 24](#aula
 O script cria o banco `dwii_db`, as tabelas `projetos`, `tecnologias` e `contatos`, além de alguns dados iniciais do catálogo:
 
 ```bash
-sudo mariadb < sql/setup.sql
+sudo mariadb < PortfolioAngular/sql/setup.sql
 ```
 
 Ou, já dentro do cliente:
 
 ```sql
-SOURCE sql/setup.sql;
+SOURCE PortfolioAngular/sql/setup.sql;
 ```
 
-A conexão padrão usada por `conexao.php` é:
+A conexão padrão usada por `PortfolioAngular/conexao.php` é:
 
 - banco: `dwii_db`
 - usuário: `dwii_user`
@@ -62,7 +67,7 @@ A conexão padrão usada por `conexao.php` é:
 Na raiz do repositório, usando o servidor embutido do PHP:
 
 ```bash
-/usr/bin/php -S localhost:8000
+/usr/bin/php -S localhost:8000 -t PortfolioAngular
 ```
 
 ### 4. Endpoints
@@ -80,7 +85,7 @@ As respostas em JSON usam `Content-Type: application/json; charset=utf-8` e as A
 ## Front-end (Angular)
 
 ```bash
-cd portfolio-angular
+cd PortfolioAngular
 npm install
 npm start
 ```
@@ -89,7 +94,7 @@ Acesse http://localhost:4200/.
 
 A URL base da API fica centralizada em:
 
-`portfolio-angular/src/app/api-url.ts`
+`PortfolioAngular/src/app/api-url.ts`
 
 Por padrão:
 
@@ -116,29 +121,29 @@ Conceito pretendido: B
 
 Justificativa:
 
-- Consumo da API de projetos: `portfolio-angular/src/app/projeto.service.ts`, linhas 26–41, concentra as requisições; `portfolio-angular/src/app/projetos/projetos.ts` recebe os dados e a tela mostra carregamento, erro e estado vazio em `projetos.html`.
-- Catálogo: `portfolio-angular/src/app/tecnologia.service.ts` busca as tecnologias e `portfolio-angular/src/app/catalogo/catalogo.html` mostra carregamento, erro e mensagem quando não há itens.
-- Botão GitHub: `portfolio-angular/src/app/projetos/projetos.html` usa `[href]` para abrir o repositório do projeto quando o link existe.
-- Boas práticas: a URL base da API está em `portfolio-angular/src/app/api-url.ts`; as chamadas HTTP ficam nos services e os componentes cuidam do estado da tela.
+- Consumo da API de projetos: `PortfolioAngular/src/app/projeto.service.ts`, linhas 26–41, concentra as requisições; `PortfolioAngular/src/app/projetos/projetos.ts` recebe os dados e a tela mostra carregamento, erro e estado vazio em `projetos.html`.
+- Catálogo: `PortfolioAngular/src/app/tecnologia.service.ts` busca as tecnologias e `PortfolioAngular/src/app/catalogo/catalogo.html` mostra carregamento, erro e mensagem quando não há itens.
+- Botão GitHub: `PortfolioAngular/src/app/projetos/projetos.html` usa `[href]` para abrir o repositório do projeto quando o link existe.
+- Boas práticas: a URL base da API está em `PortfolioAngular/src/app/api-url.ts`; as chamadas HTTP ficam nos services e os componentes cuidam do estado da tela.
 
 ## 🎯 Autoavaliação — Aula 18
 
 Conceito pretendido: B
 
-- Formulário reativo: `portfolio-angular/src/app/contato/contato.ts`, linhas 19–23, cria os campos com `Validators`.
-- Erros por campo: `portfolio-angular/src/app/contato/contato.html`, linhas 8–29, mostra as mensagens de nome, e-mail e mensagem depois que o campo é tocado.
-- POST e estados de envio: `portfolio-angular/src/app/contato.service.ts`, linhas 21–25, faz o POST; em `contato.ts`, a função `onSubmit()` trata sucesso, erro, reset do formulário e bloqueio durante o envio.
-- Endpoint: `api/contato.php`, linhas 20–54, lê o JSON, valida novamente no servidor, grava com `prepare` e `execute` e responde 201 ou 400.
+- Formulário reativo: `PortfolioAngular/src/app/contato/contato.ts`, linhas 19–23, cria os campos com `Validators`.
+- Erros por campo: `PortfolioAngular/src/app/contato/contato.html`, linhas 8–29, mostra as mensagens de nome, e-mail e mensagem depois que o campo é tocado.
+- POST e estados de envio: `PortfolioAngular/src/app/contato.service.ts`, linhas 21–25, faz o POST; em `contato.ts`, a função `onSubmit()` trata sucesso, erro, reset do formulário e bloqueio durante o envio.
+- Endpoint: `PortfolioAngular/api/contato.php`, linhas 20–54, lê o JSON, valida novamente no servidor, grava com `prepare` e `execute` e responde 201 ou 400.
 - Feedback na tela: `contato.html` mostra as mensagens de sucesso e erro depois da tentativa de envio.
 
 ## 🎯 Autoavaliação — Aula 19
 
 Conceito pretendido: B
 
-- API por verbo e status: `api/projetos.php`, linhas 18–166, trata GET, POST, PUT, DELETE e OPTIONS. O parâmetro `?todos=1` é usado pela gestão para incluir rascunhos.
-- Gestão pelo service: `portfolio-angular/src/app/gestao/gestao.ts` usa somente `ProjetoService`; o acesso HTTP fica em `portfolio-angular/src/app/projeto.service.ts`, linhas 26–41.
-- Formulário e status: `portfolio-angular/src/app/gestao/gestao.html`, a partir da linha 9, tem formulário reativo, validação de nome e ano e escolha entre rascunho e publicado.
-- Atualização sem F5: `portfolio-angular/src/app/gestao/gestao.ts`, a partir da linha 82, salva o projeto e carrega a lista novamente.
+- API por verbo e status: `PortfolioAngular/api/projetos.php`, linhas 18–166, trata GET, POST, PUT, DELETE e OPTIONS. O parâmetro `?todos=1` é usado pela gestão para incluir rascunhos.
+- Gestão pelo service: `PortfolioAngular/src/app/gestao/gestao.ts` usa somente `ProjetoService`; o acesso HTTP fica em `PortfolioAngular/src/app/projeto.service.ts`, linhas 26–41.
+- Formulário e status: `PortfolioAngular/src/app/gestao/gestao.html`, a partir da linha 9, tem formulário reativo, validação de nome e ano e escolha entre rascunho e publicado.
+- Atualização sem F5: `PortfolioAngular/src/app/gestao/gestao.ts`, a partir da linha 82, salva o projeto e carrega a lista novamente.
 - Exclusão: `gestao.ts`, a partir da linha 118, pede confirmação com o nome do projeto e remove o item da lista depois da resposta da API.
 - Estados da interface: a tela mostra carregamento, lista vazia, sucesso e erro.
 
@@ -229,7 +234,7 @@ A revisão partiu do commit `44a7ce1` ("Aula 24 (Parte 1): Login, JWT e teste do
 
 Faltavam a tabela de usuários versionada, a documentação de execução e respostas, as três escritas protegidas do catálogo e a leitura protegida de rascunhos. Foram acrescentadas essas partes e corrigido o acesso público por `?todos=1`. POST aceita status e PUT o preserva quando omitido, para um rascunho não ser publicado sem intenção. Login sem corpo agora responde 400; o middleware exige o formato Bearer. O script de criação encerra com código de erro em caso de falha e aguarda o fechamento do pool.
 
-Os 1.079 arquivos de `api-node/node_modules/` foram retirados do controle de versão; o `.gitignore` da raiz ignora dependências e arquivos `.env`. Os pacotes continuam definidos em `package.json`/`package-lock.json`. A aparência, os dados e os arquivos do Angular/PHP não foram alterados nesta aula.
+Os 1.079 arquivos de `PortfolioAngular/api-node/node_modules/` foram retirados do controle de versão; as regras de ignore, agora nos dois projetos, ignoram dependências e arquivos `.env`. Os pacotes continuam definidos em `package.json`/`package-lock.json`. A aparência, os dados e os arquivos do Angular/PHP não foram alterados nesta aula.
 
 ### Como rodar do zero no Codespace
 
@@ -246,8 +251,8 @@ sudo service mariadb start
 2. Criar as tabelas e depois acrescentar usuários, sem apagar registros existentes:
 
 ```bash
-sudo mariadb < sql/setup.sql
-sudo mariadb dwii_db < sql/usuarios.sql
+sudo mariadb < PortfolioAngular/sql/setup.sql
+sudo mariadb dwii_db < PortfolioAngular/sql/usuarios.sql
 sudo mariadb -e "SHOW TABLES FROM dwii_db;"
 ```
 
@@ -262,12 +267,12 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON dwii_db.* TO 'dwii_user'@'localhost';
 SQL
 ```
 
-`dwii2026` é a configuração didática de conexão com o banco que já existia no projeto; **não é a senha de login da Luara**. `api-node/db.js` usa `dwii_db`, `dwii_user` e esse valor. Se a conta do seu Codespace já usa outra configuração, mantenha seus dados e ajuste a conexão local, sem redefinir a conta. O socket padrão é `/run/mysqld/mysqld.sock`; para um MariaDB em outro socket, exporte `DB_SOCKET` com o caminho antes dos comandos Node. A revisão usou essa opção para acessar um banco isolado.
+`dwii2026` é a configuração didática de conexão com o banco que já existia no projeto; **não é a senha de login da Luara**. `PortfolioAngular/api-node/db.js` usa `dwii_db`, `dwii_user` e esse valor. Se a conta do seu Codespace já usa outra configuração, mantenha seus dados e ajuste a conexão local, sem redefinir a conta. O socket padrão é `/run/mysqld/mysqld.sock`; para um MariaDB em outro socket, exporte `DB_SOCKET` com o caminho antes dos comandos Node. A revisão usou essa opção para acessar um banco isolado.
 
 4. Instalar as dependências da API pelo lockfile:
 
 ```bash
-cd api-node
+cd PortfolioAngular/api-node
 npm ci
 ```
 
@@ -688,8 +693,8 @@ Não há registro fabricado de um DELETE sem autenticação retornando 204 "ante
 
 | Critério da Entrega A | Evidência nesta revisão | Limite para afirmar atendimento integral |
 | --- | --- | --- |
-| 1. Operações da API | Cinco operações de projetos e três escritas protegidas do catálogo, com status e SQL parametrizado: `api-node/server.js`, seções de projetos e catálogo; respostas acima | Evidências técnicas de C e B presentes |
-| 2. Tranca | `sql/usuarios.sql`, `api-node/criar-usuario.js`, único `autenticar`, login, 30 minutos, mensagens confirmadas e justificativa; leitura `/api/projetos/todos` protegida | Requisitos técnicos adicionais de A presentes; senha pessoal definitiva ainda deve ser criada pela Luara no Codespace |
+| 1. Operações da API | Cinco operações de projetos e três escritas protegidas do catálogo, com status e SQL parametrizado: `PortfolioAngular/api-node/server.js`, seções de projetos e catálogo; respostas acima | Evidências técnicas de C e B presentes |
+| 2. Tranca | `PortfolioAngular/sql/usuarios.sql`, `PortfolioAngular/api-node/criar-usuario.js`, único `autenticar`, login, 30 minutos, mensagens confirmadas e justificativa; leitura `/api/projetos/todos` protegida | Requisitos técnicos adicionais de A presentes; senha pessoal definitiva ainda deve ser criada pela Luara no Codespace |
 | 3. README e histórico | Execução do zero, curls reais, limites, explicação do segredo e tabela de rotas; dependências fora da árvore versionada atual | Não existem commits separados das Aulas 21, 22 e 23 no histórico recebido; nem todas as mensagens antigas seguem `Aula NN:` |
 
 A revisão implementa e testa os recursos técnicos até A, mas **não comprova A integral na rubrica**. O conceito final depende do menor dos três critérios e da avaliação do professor. Não é possível declarar integralmente C/B/A enquanto o requisito histórico do arco não estiver resolvido com o professor. A escolha pessoal de conceito esperado e a autoavaliação não foram preenchidas pela IA.
@@ -706,7 +711,7 @@ A Aula 24 foi publicada em `7943ee8`. O Codespace da Luara ainda estava no commi
 
 O README recebido era idêntico à versão do commit antigo; esta revisão manteve a documentação publicada da Aula 24 e acrescentou a Aula 25. Os outros arquivos modificados do Codespace não vieram no pacote e não foram aplicados, descartados nem conciliados nesta revisão. Eles permanecem no Codespace; o GitHub e essa cópia local não representam todas essas mudanças.
 
-`portfolio-react/` está na raiz, ao lado de `portfolio-angular/`, `api-node/`, `api/` e `sql/`. Não houve movimentação de backend nem reorganização de pastas. Só foi preciso incorporar e completar a pasta React recebida e atualizar a documentação; por isso há um único commit desta aula.
+`portfolio-react/` permanece na raiz. A implementação original da Aula 25 foi publicada em `5ca7168`, sem reorganização. Depois, a pedido da usuária, um commit separado reuniu Angular, APIs, SQL e conexão em `PortfolioAngular/`, conforme a árvore atual acima. Não há Angular aninhado em outra pasta Angular: `src/`, configurações e backend estão diretamente nessa pasta.
 
 ```text
 portfolio-react/
@@ -728,7 +733,7 @@ portfolio-react/
 - `App.jsx` substitui o texto provisório por "Projetos" e três chamadas explícitas de `CardProjeto`, dentro de um fragment junto com `Cabecalho` e `Rodape`. Não há array com `map`, estado, formulário, fetch, useEffect ou Router nesta aula.
 - `Cabecalho.jsx` mantém os quatro links do manual (Início, Sobre, Projetos e Contato, ainda com `href="#"`) e identifica o Portfólio da Luara. Não se espera navegação entre páginas nesta etapa.
 - `CardProjeto.jsx` é uma função exportada que recebe **um objeto** pela prop `projeto` e lê `projeto.nome`, `descricao`, `tecnologias`, `link_github` e `ano`. As props entram do pai para o filho e são somente leitura. O ano é número, não string. Um mesmo componente monta os três cards.
-- `Rodape.jsx` mostra "Luara Munkemer Fornazari · IFPR · 2026"; o nome completo e o IFPR já estavam em `portfolio-angular/src/app/sobre/sobre.html`. Não foram inventadas informações pessoais.
+- `Rodape.jsx` mostra "Luara Munkemer Fornazari · IFPR · 2026"; o nome completo e o IFPR já estavam em `PortfolioAngular/src/app/sobre/sobre.html`. Não foram inventadas informações pessoais.
 - `index.css` preserva as variáveis, a cor roxa do cabeçalho e os modos claro/escuro recebidos; acrescenta grid, cards, rodapé e ajuste de largura/empilhamento no celular. `index.html` agora usa `pt-BR` e o título do portfólio.
 
 **Dados:** os três cards reproduzem os primeiros três registros da consulta ao banco enviada pela usuária: Portfolio Pessoal (2026), Sistema de Biblioteca (2025) e App de Tarefas (2025), com suas descrições e tecnologias. Os endereços informados `github.com/usuario/...` são exemplos, por isso `link_github` ficou `null`, sem inventar URLs. Quando a Luara confirmar um link real, basta preencher esse campo. O componente usa `{projeto.link_github && <a ...>}`: não cria um botão sem destino. O comportamento com URL, `null` e string vazia foi testado separadamente, sem trocar os dados da página. Os registros no banco não foram alterados nem importados por requisição.
@@ -765,7 +770,7 @@ npm run lint
 
 ### Codespace antigo com mudanças locais: abrir sem sobrescrever
 
-**Este é o caso mostrado nos prints da Luara.** Não faça pull sobre a pasta ainda não conciliada: há alterações em `api-node/server.js`, `api/projetos.php`, `api/tecnologias.php`, nos services Angular e em `sql/setup.sql`, além de `sql/usuarios.sql` e do React como arquivos não rastreados. Alguns desses caminhos também mudaram nos commits publicados, então uma atualização exige conciliação.
+**Este é o caso mostrado nos prints da Luara.** Não faça pull sobre a pasta ainda não conciliada: há alterações nos caminhos antigos `api-node/server.js`, `api/projetos.php`, `api/tecnologias.php`, nos services Angular e em `sql/setup.sql`, além de `sql/usuarios.sql` e do React como arquivos não rastreados. Alguns desses caminhos também mudaram nos commits publicados, então uma atualização exige conciliação.
 
 Para abrir a Aula 25 já publicada mantendo o diretório antigo intacto, use uma **worktree temporária**, fora do repositório atual. Isso é um checkout separado para conferência, não uma reorganização nem um segundo projeto dentro de `portfolio-react/`. Execute uma vez, a partir da raiz do Codespace antigo:
 
@@ -801,4 +806,58 @@ Os testes de navegador foram executados nesta máquina, com o React do pacote co
 
 A implementação e os testes sustentam o recurso técnico adicional da **meta A** do checkpoint, sem promessa de nota. A aula não tem envio nem conceito próprio. Os links pessoais reais continuam pendentes de confirmação e a atualização da pasta antiga do Codespace depende da conciliação de seus outros arquivos. Exercícios do caderno e autoavaliação continuam com a Luara. Nada foi enviado ao AVA, e as Aulas 26 e 27 não foram implementadas.
 
-Uso de IA: ChatGPT/Codex auxiliou na leitura dos materiais, comparação com o código, complemento da tabela de usuários e rotas da Aula 24 e dos componentes/CSS da Aula 25, execução dos testes HTTP e de navegador e redação das instruções e evidências deste README, para revisão e estudo pela Luara.
+## Organização das pastas solicitada após a Aula 25
+
+A estrutura segue a referência enviada: a raiz contém `PortfolioAngular/`, `portfolio-react/` e este README. A pasta antes chamada `portfolio-angular/` foi renomeada para `PortfolioAngular/`; `api-node/`, `api/`, `sql/` e `conexao.php` foram movidos para dentro dela. Os arquivos de código, contratos HTTP, dados SQL e identidades visuais foram preservados. A reorganização está em um commit próprio, separado das aulas.
+
+Os imports do Angular e Node continuam relativos às mesmas pastas internas. Os endpoints PHP continuam incluindo `__DIR__ . '/../conexao.php'`, porque `api/` e `conexao.php` foram movidos juntos e mantêm essa relação. A API do Angular permanece em `http://localhost:8000/api`; o PHP deve servir **PortfolioAngular**, não a raiz do repositório. O `angular.json` continua com `src` e `public` relativos à pasta Angular. As regras da antiga `.gitignore` da raiz foram incorporadas à pasta Angular; o React também ignora arquivos `.env`, além de dependências e build.
+
+Comandos a partir da raiz de um checkout atualizado:
+
+```bash
+# Banco (configuração e credenciais: seção Aula 24)
+sudo service mariadb start
+sudo mariadb < PortfolioAngular/sql/setup.sql
+sudo mariadb dwii_db < PortfolioAngular/sql/usuarios.sql
+```
+
+Use terminais separados para cada servidor:
+
+```bash
+# API PHP usada pelo Angular: http://localhost:8000/api/projetos.php
+php -S localhost:8000 -t PortfolioAngular
+```
+
+```bash
+# Angular: porta 4200
+cd PortfolioAngular
+npm ci
+npm start -- --host 0.0.0.0
+```
+
+```bash
+# API Node: porta 3000
+cd PortfolioAngular/api-node
+npm ci
+node server.js
+```
+
+```bash
+# React: porta 5173, independente da API nesta aula
+cd portfolio-react
+npm ci
+npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
+```
+
+### Verificação da reorganização — 16/11/2026
+
+- 62 arquivos movidos (código, configurações e SQL) comparados byte a byte com o commit anterior, sem mudança de conteúdo. A `.gitignore` Angular recebeu as regras antes existentes na raiz; a do React recebeu a exclusão de `.env`.
+- Angular: `npm ci` (475 pacotes), `npm run build` concluído, bundle inicial de 479,56 kB. Servidor na porta 4200; Chromium renderizou Início e Sobre, incluindo o nome da Luara, em 1440 e 390 px, sem exceções de página.
+- React: `npm run build` e `npm run lint` passaram. O bundle e o código React permaneceram iguais aos da Aula 25.
+- Node: sintaxe dos três scripts conferida e nove requisições HTTP passaram, incluindo leituras 200 com MariaDB real isolado, login inválido 401, dados ausentes 400, proteção das escritas e leitura de todos com 401 sem token, e OPTIONS 204. Nenhuma escrita no banco foi autorizada pelos testes desta reorganização.
+- PHP 8.3 em container Alpine: quatro arquivos passaram em `php -l`; OPTIONS de projetos/contato retornaram 204 e POST de contato inválido retornou 400 com JSON. A relação de `api/` com `../conexao.php` foi conferida. O CRUD PHP com banco não foi repetido: a tentativa inicial de preparar o driver MySQL esgotou o disco; os recursos temporários dessa tentativa foram removidos, liberando espaço. A imagem menor usada depois não inclui `pdo_mysql`.
+- Dependências, `dist` e `.env` continuam ignorados nos dois projetos; nenhum deles entra no commit. O banco pessoal da Luara e o Codespace antigo não foram alterados.
+
+As alterações locais do Codespace antigo ainda não recebidas não foram transportadas automaticamente. O roteiro de worktree da Aula 25 abre a árvore atual sem sobrescrevê-las. Não execute um pull sobre as mudanças locais antigas antes de conciliá-las, pois os caminhos também mudaram nesta reorganização.
+
+Uso de IA: ChatGPT/Codex auxiliou na leitura dos materiais, comparação com o código, complemento da tabela de usuários e rotas da Aula 24 e dos componentes/CSS da Aula 25, reorganização de pastas solicitada pela usuária e execução dos testes HTTP e de navegador e redação das instruções e evidências deste README, para revisão e estudo pela Luara.
