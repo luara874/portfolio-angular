@@ -23,7 +23,8 @@ Versões do projeto: npm 11.9.0, Angular CLI 21.2.13, Node 24 recomendado, PHP 8
 ├── sql/
 │   ├── setup.sql         # cria o banco, as tabelas e os dados-base
 │   └── usuarios.sql      # acrescenta os usuários com hash, sem apagar dados
-└── portfolio-angular/    # aplicação Angular (front-end)
+├── portfolio-angular/    # aplicação Angular preservada
+└── portfolio-react/      # front React da Aula 25 (Vite, porta 5173)
 ```
 
 A API avaliada na Aula 24 é a **Node**, na porta **3000**: veja [Aula 24](#aula-24-a-tranca-da-api-em-node) para subir do zero e conferir as respostas reais. O Angular e a API PHP continuam preservados; a constante `API_URL` do Angular ainda aponta para a API PHP (porta 8000). Mudar somente a porta não basta para migrá-lo, porque os caminhos e contratos PHP/Node são diferentes. Login no front não é cobrado nesta aula.
@@ -697,4 +698,107 @@ O repositório recebido tinha 12 commits; o último era `44a7ce1`, que reuniu a 
 
 Repositório público: https://github.com/luara874/portfolio-angular . Nada foi enviado ao AVA nesta revisão. A Luara deve definir sua senha no Codespace, estudar os trechos acima e tratar a lacuna do histórico com o professor antes de declarar um conceito esperado.
 
-Uso de IA: ChatGPT/Codex auxiliou na leitura dos materiais, comparação com o código, complemento da tabela de usuários e rotas da Aula 24, execução dos testes e redação das instruções e evidências deste README, para revisão e estudo pela Luara.
+## Aula 25: o portfólio em React
+
+### Base recebida e organização
+
+A Aula 24 foi publicada em `7943ee8`. O Codespace da Luara ainda estava no commit `44a7ce1`, com alterações locais no backend, Angular e SQL e com `portfolio-react/` não rastreada. O pacote `luara-aula25-contexto.tar.gz` enviado pela usuária permitiu aproveitar o React existente, em vez de recriá-lo com Vite. Ele já tinha Vite/React, lockfile, Oxlint, `main.jsx`, `App.jsx`, `Cabecalho.jsx`, estilos roxos com modo escuro e a frase "Em breve, em React.".
+
+O README recebido era idêntico à versão do commit antigo; esta revisão manteve a documentação publicada da Aula 24 e acrescentou a Aula 25. Os outros arquivos modificados do Codespace não vieram no pacote e não foram aplicados, descartados nem conciliados nesta revisão. Eles permanecem no Codespace; o GitHub e essa cópia local não representam todas essas mudanças.
+
+`portfolio-react/` está na raiz, ao lado de `portfolio-angular/`, `api-node/`, `api/` e `sql/`. Não houve movimentação de backend nem reorganização de pastas. Só foi preciso incorporar e completar a pasta React recebida e atualizar a documentação; por isso há um único commit desta aula.
+
+```text
+portfolio-react/
+├── package.json / package-lock.json
+├── vite.config.js / .oxlintrc.json / .gitignore
+├── index.html
+├── public/
+└── src/
+    ├── main.jsx
+    ├── App.jsx
+    ├── Cabecalho.jsx
+    ├── CardProjeto.jsx
+    ├── Rodape.jsx
+    └── index.css
+```
+
+### Componentes, props e conteúdo
+
+- `App.jsx` substitui o texto provisório por "Projetos" e três chamadas explícitas de `CardProjeto`, dentro de um fragment junto com `Cabecalho` e `Rodape`. Não há array com `map`, estado, formulário, fetch, useEffect ou Router nesta aula.
+- `Cabecalho.jsx` mantém os quatro links do manual (Início, Sobre, Projetos e Contato, ainda com `href="#"`) e identifica o Portfólio da Luara. Não se espera navegação entre páginas nesta etapa.
+- `CardProjeto.jsx` é uma função exportada que recebe **um objeto** pela prop `projeto` e lê `projeto.nome`, `descricao`, `tecnologias`, `link_github` e `ano`. As props entram do pai para o filho e são somente leitura. O ano é número, não string. Um mesmo componente monta os três cards.
+- `Rodape.jsx` mostra "Luara Munkemer Fornazari · IFPR · 2026"; o nome completo e o IFPR já estavam em `portfolio-angular/src/app/sobre/sobre.html`. Não foram inventadas informações pessoais.
+- `index.css` preserva as variáveis, a cor roxa do cabeçalho e os modos claro/escuro recebidos; acrescenta grid, cards, rodapé e ajuste de largura/empilhamento no celular. `index.html` agora usa `pt-BR` e o título do portfólio.
+
+**Dados:** os três cards reproduzem os primeiros três registros da consulta ao banco enviada pela usuária: Portfolio Pessoal (2026), Sistema de Biblioteca (2025) e App de Tarefas (2025), com suas descrições e tecnologias. Os endereços informados `github.com/usuario/...` são exemplos, por isso `link_github` ficou `null`, sem inventar URLs. Quando a Luara confirmar um link real, basta preencher esse campo. O componente usa `{projeto.link_github && <a ...>}`: não cria um botão sem destino. O comportamento com URL, `null` e string vazia foi testado separadamente, sem trocar os dados da página. Os registros no banco não foram alterados nem importados por requisição.
+
+**JSX:** usa-se `className`, nome da propriedade do DOM para a classe CSS, em vez de `class`, palavra reservada do JavaScript. `{projeto.nome}` mostra o valor; `{{nome}}` tenta renderizar um objeto e causa erro no React. Uma prop `titulo` não preenche automaticamente `nome`: os nomes precisam coincidir. O fragment `<>...</>` permite devolver uma única árvore sem acrescentar uma div ao layout.
+
+### Executar em um checkout atualizado e sem alterações pendentes
+
+Requisitos: Node 24 e npm 11, os mesmos usados na verificação. Na raiz do repositório:
+
+```bash
+git switch main
+git pull --ff-only origin main
+cd portfolio-react
+npm install
+npm run dev
+```
+
+O Vite usa a porta **5173**. No Codespace, abra o globo dessa porta na aba **PORTS**. Se precisar expor a interface de rede, use:
+
+```bash
+npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
+```
+
+Se a porta já estiver ocupada pelo React antigo, pare somente aquele `npm run dev` com Ctrl+C no terminal correspondente antes de iniciar a versão atual. A API Node e o banco não precisam estar ligados para esta aula. As instruções anteriores de Angular/PHP e Node continuam nas respectivas seções; o React não substitui esses projetos.
+
+Para reinstalar exatamente as versões do lockfile e verificar:
+
+```bash
+npm ci
+npm run build
+npm run lint
+```
+
+### Codespace antigo com mudanças locais: abrir sem sobrescrever
+
+**Este é o caso mostrado nos prints da Luara.** Não faça pull sobre a pasta ainda não conciliada: há alterações em `api-node/server.js`, `api/projetos.php`, `api/tecnologias.php`, nos services Angular e em `sql/setup.sql`, além de `sql/usuarios.sql` e do React como arquivos não rastreados. Alguns desses caminhos também mudaram nos commits publicados, então uma atualização exige conciliação.
+
+Para abrir a Aula 25 já publicada mantendo o diretório antigo intacto, use uma **worktree temporária**, fora do repositório atual. Isso é um checkout separado para conferência, não uma reorganização nem um segundo projeto dentro de `portfolio-react/`. Execute uma vez, a partir da raiz do Codespace antigo:
+
+```bash
+git fetch origin main
+git worktree add --detach /tmp/luara-aula25-conferencia origin/main
+cd /tmp/luara-aula25-conferencia/portfolio-react
+npm ci
+npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
+```
+
+Pare antes o Vite antigo se ele estiver na 5173. A worktree fica em detached HEAD e serve para conferir o site; os próximos commits devem continuar na branch `main` após a conciliação. Não aplique `reset --hard`, `clean` nem substitua os arquivos antigos por esta cópia. O banco e os arquivos locais do Codespace original permanecem intactos. Para atualizar a pasta original com segurança, ainda será necessário receber e comparar os diffs de backend/Angular/SQL; o pacote React não contém essas mudanças. A worktree não deve ser considerada backup permanente, pois está em `/tmp`.
+
+### Evidências realmente obtidas — 16/11/2026
+
+- `npm ci` dentro de `portfolio-react/`: 27 pacotes instalados a partir do lockfile recebido, que foi preservado.
+- `npm run build`: Vite **8.3.5**, 19 módulos transformados, build concluído; gerou `dist/index.html`, CSS e JavaScript. `dist/` não foi versionada.
+- `npm run lint`: Oxlint concluiu com código de saída 0 e sem diagnósticos.
+- `npm run dev -- --host 0.0.0.0 --port 5173 --strictPort`: servidor iniciado na 5173; o navegador recebeu HTTP 200.
+- Chromium headless via Playwright: viewports **1440×900**, **390×844** e **320×720**, nos modos **claro e escuro** (seis combinações). Foram conferidos título e idioma, quatro links, os três títulos de projeto, tecnologias/ano, rodapé, ausência da frase provisória e ausência de rolagem horizontal.
+- Nas seis combinações, os cards ficaram em três colunas no desktop e uma coluna no celular; foram conferidas a cor original do cabeçalho, navegação por foco e ausência de erros/avisos de console, exceções de página e requisições falhas. As capturas de desktop e celular também foram inspecionadas visualmente.
+- O `CardProjeto` recebeu, numa fixture apenas de teste no navegador, uma URL de repositório válida, `null` e string vazia: somente a URL gerou um link, com `target="_blank"` e `rel="noopener noreferrer"`. Isso verifica a condição; não representa um link pessoal atribuído a nenhum registro do banco.
+
+Os testes de navegador foram executados nesta máquina, com o React do pacote completado, e não diretamente no navegador pessoal ou Codespace da Luara. A API e o Angular não foram retestados nem alterados nesta etapa. Não foram fabricadas respostas de exercícios pessoais nem reproduzidas quebras no projeto entregue.
+
+### Checkpoint C/B/A e pendências
+
+| Meta do material | Evidência |
+| --- | --- |
+| C | Projeto Vite recebido incorporado, porta 5173, App e CSS adaptados, Cabecalho/CardProjeto exportados, três cards com props, instruções de execução e dependências ignoradas |
+| B | Nome da Luara na barra, Rodape separado usado pelo App, dados da consulta informada, link condicional testado; URLs de exemplo foram omitidas até confirmação das reais |
+| A | `CardProjeto` recebe `projeto` como objeto, com o mesmo conjunto de campos do contrato de projetos; explicação de `className` acima |
+
+A implementação e os testes sustentam o recurso técnico adicional da **meta A** do checkpoint, sem promessa de nota. A aula não tem envio nem conceito próprio. Os links pessoais reais continuam pendentes de confirmação e a atualização da pasta antiga do Codespace depende da conciliação de seus outros arquivos. Exercícios do caderno e autoavaliação continuam com a Luara. Nada foi enviado ao AVA, e as Aulas 26 e 27 não foram implementadas.
+
+Uso de IA: ChatGPT/Codex auxiliou na leitura dos materiais, comparação com o código, complemento da tabela de usuários e rotas da Aula 24 e dos componentes/CSS da Aula 25, execução dos testes HTTP e de navegador e redação das instruções e evidências deste README, para revisão e estudo pela Luara.
