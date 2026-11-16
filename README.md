@@ -860,4 +860,59 @@ npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
 
 As alterações locais do Codespace antigo ainda não recebidas não foram transportadas automaticamente. O roteiro de worktree da Aula 25 abre a árvore atual sem sobrescrevê-las. Não execute um pull sobre as mudanças locais antigas antes de conciliá-las, pois os caminhos também mudaram nesta reorganização.
 
-Uso de IA: ChatGPT/Codex auxiliou na leitura dos materiais, comparação com o código, complemento da tabela de usuários e rotas da Aula 24 e dos componentes/CSS da Aula 25, reorganização de pastas solicitada pela usuária e execução dos testes HTTP e de navegador e redação das instruções e evidências deste README, para revisão e estudo pela Luara.
+## Aula 26: estado, lista e formulário controlado
+
+### Requisitos implementados
+
+A revisão começou com a `main` limpa e igual ao remoto, em `f6432ed`. Foram lidos os cinco PDFs da Aula 26. A árvore continua com `PortfolioAngular/`, `portfolio-react/` e este README. Nenhum arquivo do Angular/API/SQL foi modificado e `setup.sql` não foi executado. Esta máquina não tem acesso direto a novas edições não publicadas no Codespace; as antigas mudanças não recebidas continuam sendo assunto de conciliação, não foram descartadas.
+
+- `portfolio-react/src/projetos.js`: quatro objetos, com `id`, `nome`, `descricao`, `tecnologias`, `link_github` e `ano`; exportação default. Os três registros da Aula 25 foram preservados; o quarto é a API Node existente em `PortfolioAngular/api-node`, com link real para essa pasta. Os IDs são estáveis para esta lista local, sem atribuí-los a registros do banco. Os links `github.com/usuario/...` dos primeiros três itens continuam como `null` até confirmação das URLs reais.
+- `App.jsx`: uma única chamada de `CardProjeto` dentro de `projetos.map`, com `key={p.id}` e o objeto `projeto={p}`. O total acima dos cards é calculado por `projetos.length`, sem estado redundante. `Contato` aparece depois da lista, dentro do main.
+- `Contato.jsx`: estados independentes `nome`, `email`, `mensagem` e `aviso`. As três caixas têm `value` e `onChange`; o e-mail usa `type="email"`. A saudação e a contagem derivada de `mensagem.length` acompanham a digitação. O botão fica desabilitado para nome vazio ou só com espaços.
+- `enviar(e)`: usa `e.preventDefault()`, monta o aviso com nome e tamanho da mensagem antes da limpeza, e chama `setNome('')`, `setEmail('')` e `setMensagem('')`. A mensagem esclarece que é demonstração local: nada foi enviado. Não há fetch, POST, armazenamento de contato nem envio de e-mail.
+- Labels visíveis e associados por `htmlFor`/`id`, autocomplete apropriado, descrição do formulário, contador associado ao textarea e aviso em `role="status"`.
+
+O checkpoint não atribui C/B/A nesta aula: é uma meta de progresso, sem envio ao AVA. Foram implementados também os três degraus extras: dados próprios disponíveis, total da lista e botão que espera o nome. Os endereços pessoais reais dos três registros antigos continuam pendentes, sem inventar links. As respostas pessoais do caderno/autoavaliação são da Luara; a IA não as preencheu. Consumo da API fica para a Aula 27.
+
+### Para estudar
+
+`map` transforma cada objeto em um elemento React. A `key` baseada no id identifica esse elemento ao inserir/remover/reordenar dados; posição no array não é identidade. O card continua reutilizável, sem precisar conhecer o tamanho da lista.
+
+`useState` fornece o valor atual e uma função que o altera e pede um novo desenho do componente. Uma variável comum pode mudar sem avisar o React e ainda é reiniciada quando a função roda outra vez. Cada `onChange` lê `e.target.value` e chama o setter correspondente; `value` faz a caixa obedecer ao estado. Sem essa ponta, limpar o estado não limpa a caixa. O evento `onSubmit` chama `enviar`; `preventDefault` impede a navegação padrão do formulário. O contador não precisa de `useState`, pois se calcula da mensagem.
+
+### Como executar e conferir
+
+Na raiz de um checkout atualizado e sem mudanças pendentes:
+
+```bash
+git switch main
+git pull --ff-only origin main
+cd portfolio-react
+npm ci
+npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
+```
+
+Abra a porta 5173 na aba PORTS do Codespace. Se o Vite antigo ocupar essa porta, pare apenas aquele processo com Ctrl+C. Se houver alterações locais, confira `git status --short` antes do pull e preserve-as; o roteiro de worktree da Aula 25 continua válido para abrir uma cópia sem sobrescrever o diretório antigo. Não use reset/clean nem aplique o stash antigo indiscriminadamente aos caminhos reorganizados.
+
+1. Confira os quatro cards e o texto "4 projetos". Só o quarto tem link confirmado; links nulos não criam âncoras sem destino.
+2. O botão começa desabilitado; escreva Ana, `ana@exemplo.com` e `Gostei do seu portfolio.`. A contagem realmente obtida é **24**, calculada por JavaScript (`mensagem.length`).
+3. Envie: o aviso mantém o nome/tamanho que estavam preenchidos, as três caixas esvaziam, o contador volta a zero e a página não recarrega. O aviso diz expressamente que nada foi enviado.
+4. Tente um e-mail malformado: a validação nativa impede esse envio. Teste também por Tab e Enter. Preencher um novo nome permite repetir a demonstração.
+
+```bash
+# Dentro de portfolio-react/
+npm run build
+npm run lint
+```
+
+### Evidências da implementação funcional — 16/11/2026
+
+Build Vite 8.3.5 e lint Oxlint passaram. Chromium/Playwright verificou a página em **1440, 768, 390 e 320 px**, nos modos claro e escuro: oito combinações, todas com quatro cards, total correto, contador ao digitar, aviso e limpeza de nome/e-mail/mensagem, botão desabilitado, validação de e-mail e operação do formulário por teclado. Nenhuma combinação teve rolagem horizontal, conteúdo verificado fora da largura, aviso/erro de console ou exceção de página. O envio preservou o mesmo documento e não produziu POST, fetch ou XHR.
+
+Uma fixture de navegador usou o **App real** com um quinto objeto apenas em memória: apareceram cinco cards e "5 projetos", sem editar `App.jsx`. Reordenar os IDs preservou o elemento DOM do card, verificando sua identidade estável. A fixture não foi incluída nos dados entregues.
+
+Os exercícios da variável comum e da retirada de `value` foram reproduzidos em fixtures didáticas isoladas: a variável passou a conter Ana sem atualizar a saudação; no formulário sem value, o nome permaneceu na caixa após a limpeza do estado, enquanto a mensagem controlada esvaziou. O componente entregue conserva as duas pontas em todos os campos. Não foram gravadas versões quebradas nem inventadas previsões pessoais.
+
+Esses testes ocorreram nesta máquina, não diretamente no Codespace pessoal da Luara. Nenhum banco/API/Angular foi iniciado ou alterado para esta atividade. A etapa funcional fica em um commit próprio; a melhoria visual solicitada é registrada separadamente.
+
+Uso de IA: ChatGPT/Codex auxiliou na leitura dos materiais, comparação com o código, complemento da tabela de usuários e rotas da Aula 24 e dos componentes/CSS da Aula 25, reorganização de pastas solicitada pela usuária e execução dos testes HTTP e de navegador e implementação da lista/formulário da Aula 26, além da redação das instruções e evidências deste README, para revisão e estudo pela Luara.

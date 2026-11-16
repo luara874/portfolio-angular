@@ -165,3 +165,18 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
   nav a { padding: 0.25rem 0; }
   main { margin: 1.5rem auto; padding: 0 1rem; }
 }
+
+/* Aula 26: apresentação mínima do formulário, antes da melhoria visual. */
+.total-projetos { margin-bottom: 1rem; }
+.contato { margin-top: 2rem; text-align: left; }
+.contato label { display: block; margin-top: 1rem; font-weight: 600; }
+.contato input, .contato textarea {
+  display: block; width: 100%; margin: 0.4rem 0 1rem; padding: 0.75rem;
+  color: var(--text-h); background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; font: inherit;
+}
+.contato textarea { resize: vertical; }
+.contato button { margin-top: 1rem; padding: 0.75rem 1.5rem; border: 0; border-radius: 6px; background: var(--accent); color: white; font: inherit; cursor: pointer; }
+.contato button:disabled { opacity: 0.5; cursor: not-allowed; }
+.contato :is(input, textarea, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.aviso { margin-top: 1rem; color: #2e7d32; font-weight: 600; }
