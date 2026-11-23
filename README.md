@@ -1015,3 +1015,82 @@ Os comportamentos do commit funcional permanecem: busca remota, Atualizar, estad
 **Verificação final do redesign:** build e lint passaram novamente. As leituras reais por retransmissor de teste foram repetidas em 1440/390/320 px, com cinco projetos, seis tecnologias, Atualizar e os cinco destinos do menu corretos. Os sete cenários de falha/espera/vazio e os testes de formulário por teclado nas três larguras também foram repetidos, sem exceções não tratadas, POST, recarga ou rolagem horizontal. Capturas finais de desktop e celular foram inspecionadas visualmente. Continua valendo a limitação explícita de certificado no navegador direto; o site não recebeu nenhum proxy ou desativação de TLS.
 
 Uso de IA: ChatGPT/Codex auxiliou na implementação, documentação e testes deste projeto.
+
+## Aula 28 — Rotas e gestão no React
+
+### Como rodar do zero
+
+Use Node 24, npm e MariaDB. Os comandos de banco e de mudança de pasta partem da raiz do repositório.
+
+1. Inicie o MariaDB e aplique os scripts do banco.
+
+   ```bash
+   sudo service mariadb start
+   sudo mariadb < PortfolioAngular/sql/setup.sql
+   sudo mariadb dwii_db < PortfolioAngular/sql/usuarios.sql
+   ```
+
+   Em um banco novo, crie a conta didática da conexão conforme o passo 3 de [Como rodar do zero no Codespace da Aula 24](#como-rodar-do-zero-no-codespace). Se o banco estiver em outro socket, defina `DB_SOCKET` antes de executar os comandos da API.
+
+2. Em um terminal, instale a API Node. Para o primeiro login, crie uma conta com `criar-usuario.js`. O e-mail abaixo é fictício e o terminal pede a senha sem exibi-la. Se já tem conta nesse banco, pule a criação e execute `node server.js`.
+
+   ```bash
+   cd PortfolioAngular/api-node
+   npm ci
+   EMAIL='dono@example.test'
+   read -rsp 'Escolha a senha do login: ' SENHA
+   printf '\n'
+   node criar-usuario.js "$EMAIL" "$SENHA"
+   unset SENHA
+   node server.js
+   ```
+
+3. Com a API rodando, abra o painel **Ports** do Codespace. Encaminhe a porta **3000**, defina a visibilidade como **Public** e copie o endereço encaminhado.
+4. Confira o endereço em `portfolio-react/src/api.js`. Se o Codespace ganhou um novo endereço, atualize a URL padrão nesse arquivo. Use a origem da porta, sem o sufixo `/api`.
+5. Em outro terminal, partindo da raiz, instale as dependências do front.
+
+   ```bash
+   cd portfolio-react
+   npm install
+   ```
+
+6. Rode o React com Vite e abra a porta **5173** pelo painel **Ports**.
+
+   ```bash
+   npm run dev -- --host 0.0.0.0
+   ```
+
+   Para rodar tudo na sua máquina, com a API local, use `VITE_API_URL=http://localhost:3000 npm run dev`.
+
+### Rotas e atualização da lista
+
+- `/` mostra o portfólio público, os projetos publicados, o catálogo de tecnologias e o formulário de contato.
+- `/gestao` abre o login ou a gestão, conforme a sessão guardada no navegador. Na gestão, é possível cadastrar com os cinco campos, editar, excluir e sair.
+- `*` mostra a página de endereço não encontrado, com um link de volta ao Início.
+
+O menu troca de rota sem recarregar o documento. Ao voltar ao Início, os componentes montam de novo e consultam a API. A gestão atualiza a própria lista depois de cada escrita bem-sucedida. As duas telas mostram uma mensagem quando a consulta de projetos retorna vazia.
+
+### Tela × pedido à API × precisa de token
+
+| Tela | Pedido à API | Precisa de token? |
+| --- | --- | --- |
+| Início, projetos publicados | `GET /api/projetos` | Não |
+| Início, catálogo | `GET /api/tecnologias` | Não |
+| Gestão, login | `POST /api/login` | Não |
+| Gestão, lista completa | `GET /api/projetos/todos` | Sim |
+| Gestão, cadastro | `POST /api/projetos` | Sim |
+| Gestão, edição | `PUT /api/projetos/:id` | Sim |
+| Gestão, exclusão | `DELETE /api/projetos/:id` | Sim |
+
+### O que este front ainda não faz
+
+- O formulário de contato só mostra uma confirmação local. O envio e o armazenamento de mensagens ficam fora do fluxo.
+- O catálogo de tecnologias é só para consulta. Os formulários de gestão trabalham com projetos.
+
+### Como a API protege as escritas
+
+O código React roda no navegador, e qualquer pessoa pode enviar um pedido diretamente à API mesmo com a gestão oculta.<br>
+O middleware do Express verifica a assinatura e a validade do JWT enviado em `Authorization: Bearer …` antes de permitir POST, PUT ou DELETE.<br>
+Se uma escrita recebe 401, o front apaga o token e volta ao login com um aviso.
+
+IA utilizada na leitura da rubrica, na implementação das rotas e da gestão, na validação em ambiente isolado e na redação desta seção do README.
